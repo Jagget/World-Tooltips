@@ -1,3 +1,8 @@
-.vs
-*.manifest
+﻿*.manifest
 *.manifest.meta
+Out/StandaloneLinux64/StandaloneLinux64
+Out/StandaloneOSX/StandaloneOSX
+Out/StandaloneWindows/StandaloneWindows
+Out/StandaloneOSX/StandaloneOSX.meta
+Out/StandaloneWindows/StandaloneWindows.meta
+Out/StandaloneLinux64/StandaloneLinux64.meta
