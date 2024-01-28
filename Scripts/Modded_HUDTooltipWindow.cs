@@ -34,6 +34,7 @@ namespace Modded_Tooltips_Interaction
 
         const string hideInteractTooltipText = "HideDefaultInteractTooltip";
         public static bool HideInteractTooltip { get; private set; }
+        public static bool CenterText { get; private set; }
 
         #endregion Settings
 
@@ -96,6 +97,7 @@ namespace Modded_Tooltips_Interaction
 
             ModSettings settings = mod.GetSettings();
             HideInteractTooltip = settings.GetValue<bool>("GeneralSettings", hideInteractTooltipText);
+            CenterText = settings.GetValue<bool>("Experimental", "CenterText");
         }
 
         [Invoke(StateManager.StateTypes.Game)]
@@ -1149,8 +1151,20 @@ namespace Modded_Tooltips_Interaction
                     // Draw tooltip text
                     for (int i = 0; i < textRows.Length; i++)
                     {
-                        font.DrawText(textRows[i], textPos, Scale, TextColor);
-                        textPos.y += font.GlyphHeight * Scale.y;
+                        if (Modded_HUDTooltipWindow.CenterText)
+                        {
+                            float temp = textPos.x;
+                            var calc = font.CalculateTextWidth(textRows[i], Scale);
+                            textPos.x = rect.x + (widestRow - calc) / 2 * Scale.x + LeftMargin * Scale.x;
+                            font.DrawText(textRows[i], textPos, Scale, TextColor);
+                            textPos.y += font.GlyphHeight * Scale.y;
+                            textPos.x = temp;
+                        }
+                        else
+                        {
+                            font.DrawText(textRows[i], textPos, Scale, TextColor);
+                            textPos.y += font.GlyphHeight * Scale.y;
+                        }
                     }
 
                     // Lower flag

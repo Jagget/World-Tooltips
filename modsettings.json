@@ -1,5 +1,5 @@
 {
-    "Version": "1.0",
+    "Version": "1.2",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -10,6 +10,21 @@
                     "Value": false,
                     "Name": "HideDefaultInteractTooltip",
                     "Description": "Enable to not give a default indication on interactable objects that may have been intended to be secret, particularly regarding puzzles in the main quest.",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                }
+            ],
+            "$version": "v1"
+        },
+        {
+            "Name": "Experimental",
+            "Description": null,
+            "IsAdvanced": true,
+            "Keys": [
+                {
+                    "Value": false,
+                    "Name": "CenterText",
+                    "Description": "Center the text in the tooltip",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }
