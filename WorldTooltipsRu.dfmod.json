@@ -1,0 +1,20 @@
+{
+    "ModTitle": "World Tooltips Ru",
+    "ModVersion": "1.0.0",
+    "ModAuthor": "Jagget",
+    "ContactInfo": "https://forums.dfworkshop.net",
+    "DFUnity_Version": "1.0.0",
+    "ModDescription": "\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0434\u043b\u044f \u043c\u043e\u0434\u0430 World Tooltips",
+    "GUID": "b5abe9c3-d92f-40ba-a713-13f1979aa869",
+    "Files": [
+        "Assets/Game/Mods/WorldTooltips/Russian/WorldTooltipsModData.csv",
+        "Assets/Game/Mods/WorldTooltips/WorldTooltipsRu.dfmod.json"
+    ],
+    "Dependencies": [
+        {
+            "Name": "world tooltips",
+            "IsOptional": false,
+            "IsPeer": false
+        }
+    ]
+}
