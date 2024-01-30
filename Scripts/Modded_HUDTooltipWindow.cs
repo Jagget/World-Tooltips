@@ -35,6 +35,7 @@ namespace Modded_Tooltips_Interaction
         const string hideInteractTooltipText = "HideDefaultInteractTooltip";
         public static bool HideInteractTooltip { get; private set; }
         public static bool CenterText { get; private set; }
+        public static int FontIndex { get; private set; }
 
         #endregion Settings
 
@@ -98,6 +99,7 @@ namespace Modded_Tooltips_Interaction
             ModSettings settings = mod.GetSettings();
             HideInteractTooltip = settings.GetValue<bool>("GeneralSettings", hideInteractTooltipText);
             CenterText = settings.GetValue<bool>("Experimental", "CenterText");
+            FontIndex = settings.GetValue<int>("Experimental", "Font");
         }
 
         [Invoke(StateManager.StateTypes.Game)]
@@ -1047,7 +1049,22 @@ namespace Modded_Tooltips_Interaction
 
             public HUDTooltip()
             {
-                font = DaggerfallUI.DefaultFont;
+                switch (FontIndex)
+                {
+                    case 0:
+                        Font = DaggerfallUI.LargeFont;
+                        break;
+                    case 1:
+                        Font = DaggerfallUI.TitleFont;
+                        break;
+                    case 2:
+                        Font = DaggerfallUI.SmallFont;
+                        break;
+                    case 3:
+                        Font = DaggerfallUI.DefaultFont;
+                        break;
+                }
+
                 BackgroundColor = DaggerfallUI.DaggerfallUnityDefaultToolTipBackgroundColor;
                 SetMargins(Margins.All, defaultMarginSize);
             }
@@ -1082,7 +1099,7 @@ namespace Modded_Tooltips_Interaction
             public void Draw(string text)
             {
                 // Validate
-                if (font == null || string.IsNullOrEmpty(text))
+                if (Font == null || string.IsNullOrEmpty(text))
                 {
                     drawToolTip = false;
                     return;
@@ -1099,7 +1116,7 @@ namespace Modded_Tooltips_Interaction
                 // Set tooltip size
                 Size = new Vector2(
                     widestRow + LeftMargin + RightMargin,
-                    font.GlyphHeight * textRows.Length + TopMargin + BottomMargin - 1);
+                    Font.GlyphHeight * textRows.Length + TopMargin + BottomMargin - 1);
 
                 // Adjust tooltip position when large HUD is docked to match new viewport size
                 if (DaggerfallUI.Instance.DaggerfallHUD != null &&
@@ -1136,7 +1153,7 @@ namespace Modded_Tooltips_Interaction
                     base.Draw();
 
                     // Set render area for tooltip to whole screen (material might have been changed by other component, i.e. _ScissorRect might have been set to a subarea of screen (e.g. by TextLabel class))
-                    Material material = font.GetMaterial();
+                    Material material = Font.GetMaterial();
                     Vector4 scissorRect = new Vector4(0, 1, 0, 1);
                     material.SetVector("_ScissorRect", scissorRect);
 
@@ -1154,16 +1171,16 @@ namespace Modded_Tooltips_Interaction
                         if (Modded_HUDTooltipWindow.CenterText)
                         {
                             float temp = textPos.x;
-                            var calc = font.CalculateTextWidth(textRows[i], Scale);
+                            var calc = Font.CalculateTextWidth(textRows[i], Scale);
                             textPos.x = rect.x + (widestRow - calc) / 2 * Scale.x + LeftMargin * Scale.x;
-                            font.DrawText(textRows[i], textPos, Scale, TextColor);
-                            textPos.y += font.GlyphHeight * Scale.y;
+                            Font.DrawText(textRows[i], textPos, Scale, TextColor);
+                            textPos.y += Font.GlyphHeight * Scale.y;
                             textPos.x = temp;
                         }
                         else
                         {
-                            font.DrawText(textRows[i], textPos, Scale, TextColor);
-                            textPos.y += font.GlyphHeight * Scale.y;
+                            Font.DrawText(textRows[i], textPos, Scale, TextColor);
+                            textPos.y += Font.GlyphHeight * Scale.y;
                         }
                     }
 
@@ -1179,7 +1196,7 @@ namespace Modded_Tooltips_Interaction
             void UpdateTextRows(string text)
             {
                 // Do nothing if text has not changed since last time
-                bool sdfState = font.IsSDFCapable;
+                bool sdfState = Font.IsSDFCapable;
                 if (text == lastText && sdfState == previousSDFState)
                     return;
 
@@ -1195,7 +1212,7 @@ namespace Modded_Tooltips_Interaction
                 widestRow = 0;
                 for (int i = 0; i < textRows.Length; i++)
                 {
-                    float width = font.CalculateTextWidth(textRows[i], Scale);
+                    float width = Font.CalculateTextWidth(textRows[i], Scale);
                     if (width > widestRow)
                         widestRow = width;
                 }

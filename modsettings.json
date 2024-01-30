@@ -1,5 +1,5 @@
 {
-    "Version": "1.2",
+    "Version": "1.3",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -18,7 +18,7 @@
         },
         {
             "Name": "Experimental",
-            "Description": null,
+            "Description": "Use carefully!",
             "IsAdvanced": true,
             "Keys": [
                 {
@@ -27,6 +27,15 @@
                     "Description": "Center the text in the tooltip",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Min": 0,
+                    "Max": 3,
+                    "Value": 3,
+                    "Name": "Font",
+                    "Description": "What font to use for tooltips (Fonts/FONT000X)",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
                 }
             ],
             "$version": "v1"
