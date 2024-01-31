@@ -1,6 +1,6 @@
 {
     "ModTitle": "World Tooltips",
-    "ModVersion": "1.4",
+    "ModVersion": "1.4.1",
     "ModAuthor": "jefetienne",
     "ContactInfo": "https://forums.dfworkshop.net/memberlist.php?mode=viewprofile&u=2186",
     "DFUnity_Version": "1.0.0",
@@ -11,14 +11,14 @@
         "Assets/Game/Mods/WorldTooltips/tooltip.dfmod.json",
         "Assets/Game/Mods/WorldTooltips/modsettings.json",
         "Assets/Game/Mods/WorldTooltips/WorldTooltipsModData.csv",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right_bottom.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_fill.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_letf_top.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_bottom.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right_top.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_left.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_top.png",
-        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_left_bottom.png"
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_0-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_1-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_2-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_3-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_4-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_5-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_6-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_7-0.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_8-0.png"
     ]
 }

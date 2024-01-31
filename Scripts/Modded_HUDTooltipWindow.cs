@@ -29,24 +29,24 @@ namespace Modded_Tooltips_Interaction
         #region Fields
 
         static Dictionary<string, string> textDataBase = null;
-        public static string tooltip_bg_bottom_name = "tooltip_bg_bottom.png";
-        public static string tooltip_bg_fill_name = "tooltip_bg_fill.png";
-        public static string tooltip_bg_left_name = "tooltip_bg_left.png";
-        public static string tooltip_bg_left_bottom_name = "tooltip_bg_left_bottom.png";
-        public static string tooltip_bg_letf_top_name = "tooltip_bg_letf_top.png";
-        public static string tooltip_bg_right_name = "tooltip_bg_right.png";
-        public static string tooltip_bg_right_bottom_name = "tooltip_bg_right_bottom.png";
-        public static string tooltip_bg_right_top_name = "tooltip_bg_right_top.png";
-        public static string tooltip_bg_top_name = "tooltip_bg_top.png";
-        public static Texture2D tooltip_bg_bottom;
-        public static Texture2D tooltip_bg_fill;
-        public static Texture2D tooltip_bg_left;
-        public static Texture2D tooltip_bg_left_bottom;
-        public static Texture2D tooltip_bg_letf_top;
-        public static Texture2D tooltip_bg_right;
-        public static Texture2D tooltip_bg_right_bottom;
-        public static Texture2D tooltip_bg_right_top;
-        public static Texture2D tooltip_bg_top;
+        public static string TooltipBgTopLeftName = "tooltip_bg_0-0.png";
+        public static string TooltipBgTopName = "tooltip_bg_1-0.png";
+        public static string TooltipBgTopRightName = "tooltip_bg_2-0.png";
+        public static string TooltipBgLeftName = "tooltip_bg_3-0.png";
+        public static string TooltipBgFillName = "tooltip_bg_4-0.png";
+        public static string TooltipBgRightName = "tooltip_bg_5-0.png";
+        public static string TooltipBgBottomLeftName = "tooltip_bg_6-0.png";
+        public static string TooltipBgBottomName = "tooltip_bg_7-0.png";
+        public static string TooltipBgBottomRightName = "tooltip_bg_8-0.png";
+        public static Texture2D TooltipBgTopLeft;
+        public static Texture2D TooltipBgTop;
+        public static Texture2D TooltipBgTopRight;
+        public static Texture2D TooltipBgLeft;
+        public static Texture2D TooltipBgFill;
+        public static Texture2D TooltipBgRight;
+        public static Texture2D TooltipBgBottomLeft;
+        public static Texture2D TooltipBgBottom;
+        public static Texture2D TooltipBgBottomRight;
 
         #region Settings
 
@@ -1115,15 +1115,15 @@ namespace Modded_Tooltips_Interaction
                 if (Textured)
                 {
                     SetBorderTextures(
-                        tooltip_bg_letf_top,
-                        tooltip_bg_top,
-                        tooltip_bg_right_top,
-                        tooltip_bg_left,
-                        tooltip_bg_fill,
-                        tooltip_bg_right,
-                        tooltip_bg_left_bottom,
-                        tooltip_bg_bottom,
-                        tooltip_bg_right_bottom,
+                        TooltipBgTopLeft,
+                        TooltipBgTop,
+                        TooltipBgTopRight,
+                        TooltipBgLeft,
+                        TooltipBgFill,
+                        TooltipBgRight,
+                        TooltipBgBottomLeft,
+                        TooltipBgBottom,
+                        TooltipBgBottomRight,
                         FilterMode.Point
                     );
                 }
@@ -1310,6 +1310,10 @@ namespace Modded_Tooltips_Interaction
 
                     //if (rect.xMax > Screen.width) textPos.x -= (rect.xMax - Screen.width);
 
+                    // Draw border
+                    if (EnableBorder && bordersSet)
+                        DrawBorder();
+
                     // Draw tooltip text
                     for (int i = 0; i < textRows.Length; i++)
                     {
@@ -1328,10 +1332,6 @@ namespace Modded_Tooltips_Interaction
                             textPos.y += Font.GlyphHeight * Scale.y;
                         }
                     }
-
-                    // Draw border
-                    if (EnableBorder && bordersSet)
-                        DrawBorder();
 
                     // Lower flag
                     drawToolTip = false;
@@ -1378,7 +1378,7 @@ namespace Modded_Tooltips_Interaction
                 }
 
                 // Draw fill
-                DaggerfallUI.DrawTextureWithTexCoords(fillBordersRect, fillBordersTexture, new Rect(0, 0, (fillBordersRect.width / LocalScale.x) / virtualSizes.Fill.x, (fillBordersRect.height / LocalScale.y) / virtualSizes.Fill.y));
+                DaggerfallUI.DrawTextureWithTexCoords(fillBordersRect, fillBordersTexture, new Rect(0, 0, (fillBordersRect.width / (LocalScale.x * 1.4f)) / virtualSizes.Fill.x, (fillBordersRect.height / (LocalScale.y * 1.4f)) / virtualSizes.Fill.y));
 
                 // Draw corners
                 DaggerfallUI.DrawTexture(topLeftBorderRect, topLeftBorderTexture);
@@ -1387,10 +1387,10 @@ namespace Modded_Tooltips_Interaction
                 DaggerfallUI.DrawTexture(bottomRightBorderRect, bottomRightBorderTexture);
 
                 // Draw edges
-                DaggerfallUI.DrawTextureWithTexCoords(topBorderRect, topBorderTexture, new Rect(0, 0, (topBorderRect.width / LocalScale.x) / virtualSizes.Top.x, 1));
-                DaggerfallUI.DrawTextureWithTexCoords(leftBorderRect, leftBorderTexture, new Rect(0, 0, 1, (leftBorderRect.height / LocalScale.y) / virtualSizes.Left.y));
-                DaggerfallUI.DrawTextureWithTexCoords(rightBorderRect, rightBorderTexture, new Rect(0, 0, 1, (rightBorderRect.height / LocalScale.y) / virtualSizes.Right.y));
-                DaggerfallUI.DrawTextureWithTexCoords(bottomBorderRect, bottomBorderTexture, new Rect(0, 0, (bottomBorderRect.width / LocalScale.y) / virtualSizes.Bottom.x, 1));
+                DaggerfallUI.DrawTextureWithTexCoords(topBorderRect, topBorderTexture, new Rect(0, 0, (topBorderRect.width / (LocalScale.x * 1.4f)) / virtualSizes.Top.x, 1));
+                DaggerfallUI.DrawTextureWithTexCoords(leftBorderRect, leftBorderTexture, new Rect(0, 0, 1, (leftBorderRect.height / (LocalScale.y * 1.4f)) / virtualSizes.Left.y));
+                DaggerfallUI.DrawTextureWithTexCoords(rightBorderRect, rightBorderTexture, new Rect(0, 0, 1, (rightBorderRect.height / (LocalScale.y * 1.4f)) / virtualSizes.Right.y));
+                DaggerfallUI.DrawTextureWithTexCoords(bottomBorderRect, bottomBorderTexture, new Rect(0, 0, (bottomBorderRect.width / (LocalScale.y * 1.4f)) / virtualSizes.Bottom.x, 1));
             }
 
             void UpdateBorderDrawRects(Rect drawRect)
@@ -1404,56 +1404,56 @@ namespace Modded_Tooltips_Interaction
                 // Top-left
                 topLeftBorderRect.x = drawRect.x;
                 topLeftBorderRect.y = drawRect.y;
-                topLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * LocalScale.x);
-                topLeftBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * LocalScale.y);
+                topLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * (LocalScale.x * 1.4f));
+                topLeftBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * (LocalScale.y * 1.4f));
 
                 // Top-right
-                topRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * LocalScale.x);
+                topRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * (LocalScale.x * 1.4f));
                 topRightBorderRect.y = drawRect.y;
                 topRightBorderRect.xMax = drawRect.xMax;
-                topRightBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * LocalScale.y);
+                topRightBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * (LocalScale.y * 1.4f));
 
                 // Bottom-left
                 bottomLeftBorderRect.x = drawRect.x;
-                bottomLeftBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.x * LocalScale.y);
-                bottomLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * LocalScale.x);
+                bottomLeftBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.x * (LocalScale.y * 1.4f));
+                bottomLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * (LocalScale.x * 1.4f));
                 bottomLeftBorderRect.yMax = drawRect.yMax;
 
                 // Bottom-right
-                bottomRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * LocalScale.x);
-                bottomRightBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * LocalScale.y);
+                bottomRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * (LocalScale.x * 1.4f));
+                bottomRightBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * (LocalScale.y * 1.4f));
                 bottomRightBorderRect.xMax = drawRect.xMax;
                 bottomRightBorderRect.yMax = drawRect.yMax;
 
                 // Top
-                topBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * LocalScale.x);
+                topBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * (LocalScale.x * 1.4f));
                 topBorderRect.y = drawRect.y;
-                topBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * LocalScale.x);
-                topBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.Top.y * LocalScale.y);
+                topBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * (LocalScale.x * 1.4f));
+                topBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.Top.y * (LocalScale.y * 1.4f));
 
                 // Left
                 leftBorderRect.x = drawRect.x;
-                leftBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * LocalScale.y);
-                leftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.Left.x * LocalScale.x);
-                leftBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.y * LocalScale.y);
+                leftBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * (LocalScale.y * 1.4f));
+                leftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.Left.x * (LocalScale.x * 1.4f));
+                leftBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.y * (LocalScale.y * 1.4f));
 
                 // Right
-                rightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * LocalScale.x);
-                rightBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * LocalScale.y);
+                rightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * (LocalScale.x * 1.4f));
+                rightBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * (LocalScale.y * 1.4f));
                 rightBorderRect.xMax = drawRect.xMax;
-                rightBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * LocalScale.y);
+                rightBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * (LocalScale.y * 1.4f));
 
                 // Bottom
-                bottomBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * LocalScale.x);
-                bottomBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * LocalScale.y);
-                bottomBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * LocalScale.x);
+                bottomBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * (LocalScale.x * 1.4f));
+                bottomBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * (LocalScale.y * 1.4f));
+                bottomBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * (LocalScale.x * 1.4f));
                 bottomBorderRect.yMax = drawRect.yMax;
 
                 // Fill
-                fillBordersRect.xMin = Mathf.Round(drawRect.xMin + virtualSizes.Left.x * LocalScale.x);
-                fillBordersRect.yMin = Mathf.Round(drawRect.yMin + virtualSizes.Top.y * LocalScale.y);
-                fillBordersRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * LocalScale.x);
-                fillBordersRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * LocalScale.y);
+                fillBordersRect.xMin = Mathf.Round(drawRect.xMin + virtualSizes.Left.x * (LocalScale.x * 1.4f));
+                fillBordersRect.yMin = Mathf.Round(drawRect.yMin + virtualSizes.Top.y * (LocalScale.y * 1.4f));
+                fillBordersRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * (LocalScale.x * 1.4f));
+                fillBordersRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * (LocalScale.y * 1.4f));
             }
 
             #endregion
@@ -1463,23 +1463,23 @@ namespace Modded_Tooltips_Interaction
 
         static void LoadTextures()
         {
-            if (!TextureReplacement.TryImportImage(tooltip_bg_bottom_name, true, out tooltip_bg_bottom))
+            if (!TextureReplacement.TryImportTexture(TooltipBgTopLeftName, true, out TooltipBgTopLeft))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_fill_name, true, out tooltip_bg_fill))
+            if (!TextureReplacement.TryImportTexture(TooltipBgTopName, true, out TooltipBgTop))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_left_name, true, out tooltip_bg_left))
+            if (!TextureReplacement.TryImportTexture(TooltipBgTopRightName, true, out TooltipBgTopRight))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_left_bottom_name, true, out tooltip_bg_left_bottom))
+            if (!TextureReplacement.TryImportTexture(TooltipBgLeftName, true, out TooltipBgLeft))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_letf_top_name, true, out tooltip_bg_letf_top))
+            if (!TextureReplacement.TryImportTexture(TooltipBgFillName, true, out TooltipBgFill))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_right_name, true, out tooltip_bg_right))
+            if (!TextureReplacement.TryImportTexture(TooltipBgRightName, true, out TooltipBgRight))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_right_bottom_name, true, out tooltip_bg_right_bottom))
+            if (!TextureReplacement.TryImportTexture(TooltipBgBottomLeftName, true, out TooltipBgBottomLeft))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_right_top_name, true, out tooltip_bg_right_top))
+            if (!TextureReplacement.TryImportTexture(TooltipBgBottomName, true, out TooltipBgBottom))
                 return;
-            if (!TextureReplacement.TryImportImage(tooltip_bg_top_name, true, out tooltip_bg_top))
+            if (!TextureReplacement.TryImportTexture(TooltipBgBottomRightName, true, out TooltipBgBottomRight))
                 return;
         }
 
