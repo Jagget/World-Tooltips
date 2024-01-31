@@ -7,12 +7,12 @@ using UnityEngine;
 using DaggerfallConnect;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
-using DaggerfallWorkshop.Game.Utility.ModSupport;
 using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Questing;
 using DaggerfallWorkshop.Game.UserInterface;
+using DaggerfallWorkshop.Game.Utility;
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
-
 using DaggerfallWorkshop.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
 
@@ -29,13 +29,34 @@ namespace Modded_Tooltips_Interaction
         #region Fields
 
         static Dictionary<string, string> textDataBase = null;
+        public static string tooltip_bg_bottom_name = "tooltip_bg_bottom.png";
+        public static string tooltip_bg_fill_name = "tooltip_bg_fill.png";
+        public static string tooltip_bg_left_name = "tooltip_bg_left.png";
+        public static string tooltip_bg_left_bottom_name = "tooltip_bg_left_bottom.png";
+        public static string tooltip_bg_letf_top_name = "tooltip_bg_letf_top.png";
+        public static string tooltip_bg_right_name = "tooltip_bg_right.png";
+        public static string tooltip_bg_right_bottom_name = "tooltip_bg_right_bottom.png";
+        public static string tooltip_bg_right_top_name = "tooltip_bg_right_top.png";
+        public static string tooltip_bg_top_name = "tooltip_bg_top.png";
+        public static Texture2D tooltip_bg_bottom;
+        public static Texture2D tooltip_bg_fill;
+        public static Texture2D tooltip_bg_left;
+        public static Texture2D tooltip_bg_left_bottom;
+        public static Texture2D tooltip_bg_letf_top;
+        public static Texture2D tooltip_bg_right;
+        public static Texture2D tooltip_bg_right_bottom;
+        public static Texture2D tooltip_bg_right_top;
+        public static Texture2D tooltip_bg_top;
 
         #region Settings
 
-        const string hideInteractTooltipText = "HideDefaultInteractTooltip";
         public static bool HideInteractTooltip { get; private set; }
         public static bool CenterText { get; private set; }
+        public static bool Textured { get; private set; }
         public static int FontIndex { get; private set; }
+        public static float FontScale { get; private set; }
+        public static Color32 BgColor { get; private set; }
+        public static Color32 TextColor { get; private set; }
 
         #endregion Settings
 
@@ -91,15 +112,29 @@ namespace Modded_Tooltips_Interaction
         {
             mod = initParams.Mod;
             mod.MessageReceiver = Modded_HUDTooltipWindow.MessageReceiver;
+            mod.LoadSettingsCallback = LoadSettings;
+            StateManager.OnStartNewGame += OnGameStarted;
+            StartGameBehaviour.OnStartGame += OnNewGameStarted;
 
+            LoadTextures();
             LoadTextData();
 
             mod.IsReady = true;
+        }
 
-            ModSettings settings = mod.GetSettings();
-            HideInteractTooltip = settings.GetValue<bool>("GeneralSettings", hideInteractTooltipText);
-            CenterText = settings.GetValue<bool>("Experimental", "CenterText");
-            FontIndex = settings.GetValue<int>("Experimental", "Font");
+        private void Start()
+        {
+            mod.LoadSettings();
+        }
+
+        static void OnGameStarted(object sender, EventArgs e)
+        {
+            mod.LoadSettings();
+        }
+
+        static void OnNewGameStarted(object sender, EventArgs e)
+        {
+            mod.LoadSettings();
         }
 
         [Invoke(StateManager.StateTypes.Game)]
@@ -141,6 +176,17 @@ namespace Modded_Tooltips_Interaction
 
         #region Public Methods
 
+        static void LoadSettings(ModSettings modSettings, ModSettingsChange change)
+        {
+            HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
+            CenterText = modSettings.GetBool("Experimental", "CenterText");
+            FontIndex = modSettings.GetInt("Experimental", "Font");
+            Textured = modSettings.GetBool("Experimental", "Textured");
+            BgColor = modSettings.GetColor("Experimental", "BackgroundColor");
+            TextColor = modSettings.GetColor("Experimental", "TextColor");
+            FontScale = modSettings.GetFloat("Experimental", "FontScale");
+        }
+
         public override void Draw()
         {
             base.Draw();
@@ -160,7 +206,7 @@ namespace Modded_Tooltips_Interaction
                 goDoorCollider = null;
             }
 
-            tooltip.Scale = DaggerfallUI.Instance.DaggerfallHUD.NativePanel.LocalScale;
+            tooltip.Scale = new Vector2(DaggerfallUI.Instance.DaggerfallHUD.NativePanel.LocalScale.x * FontScale, DaggerfallUI.Instance.DaggerfallHUD.NativePanel.LocalScale.y * FontScale); ;
             tooltip.AutoSize = AutoSizeModes.Scale;
             AutoSize = AutoSizeModes.None;
 
@@ -1001,6 +1047,28 @@ namespace Modded_Tooltips_Interaction
         {
             #region Fields
 
+            bool bordersSet = false;
+            Texture2D fillBordersTexture;
+            Texture2D topBorderTexture, bottomBorderTexture;
+            Texture2D leftBorderTexture, rightBorderTexture;
+            Texture2D topLeftBorderTexture, topRightBorderTexture;
+            Texture2D bottomLeftBorderTexture, bottomRightBorderTexture;
+
+            Rect lastDrawRect;
+            Rect fillBordersRect = new Rect();
+            Rect topLeftBorderRect = new Rect();
+            Rect topRightBorderRect = new Rect();
+            Rect bottomLeftBorderRect = new Rect();
+            Rect bottomRightBorderRect = new Rect();
+            Rect topBorderRect = new Rect();
+            Rect leftBorderRect = new Rect();
+            Rect rightBorderRect = new Rect();
+            Rect bottomBorderRect = new Rect();
+
+            public bool EnableBorder { get; set; }
+            Border<Vector2Int> virtualSizes;
+
+
             const int defaultMarginSize = 2;
 
             DaggerfallFont font;
@@ -1038,40 +1106,101 @@ namespace Modded_Tooltips_Interaction
             /// </summary>
             public Vector2 MouseOffset { get; set; } = new Vector2(0, 4);
 
-            /// <summary>
-            /// Gets or sets tooltip text colour.
-            /// </summary>
-            public Color TextColor { get; set; } = DaggerfallUI.DaggerfallUnityDefaultToolTipTextColor;
-
             #endregion
 
             #region Constructors
 
             public HUDTooltip()
             {
-                switch (FontIndex)
+                if (Textured)
                 {
-                    case 0:
-                        Font = DaggerfallUI.LargeFont;
-                        break;
-                    case 1:
-                        Font = DaggerfallUI.TitleFont;
-                        break;
-                    case 2:
-                        Font = DaggerfallUI.SmallFont;
-                        break;
-                    case 3:
-                        Font = DaggerfallUI.DefaultFont;
-                        break;
+                    SetBorderTextures(
+                        tooltip_bg_letf_top,
+                        tooltip_bg_top,
+                        tooltip_bg_right_top,
+                        tooltip_bg_left,
+                        tooltip_bg_fill,
+                        tooltip_bg_right,
+                        tooltip_bg_left_bottom,
+                        tooltip_bg_bottom,
+                        tooltip_bg_right_bottom,
+                        FilterMode.Point
+                    );
                 }
-
-                BackgroundColor = DaggerfallUI.DaggerfallUnityDefaultToolTipBackgroundColor;
-                SetMargins(Margins.All, defaultMarginSize);
+                else
+                {
+                    BackgroundColor = BgColor;
+                }
+                SetMargins(Margins.Top, defaultMarginSize);
+                SetMargins(Margins.Bottom, defaultMarginSize * 2);
+                SetMargins(Margins.Left, defaultMarginSize * 2);
+                SetMargins(Margins.Right, defaultMarginSize * 2);
             }
 
             #endregion
 
             #region Public Methods
+
+            public void SetBorderTextures(
+            Texture2D topLeft,
+            Texture2D top,
+            Texture2D topRight,
+            Texture2D left,
+            Texture2D fill,
+            Texture2D right,
+            Texture2D bottomLeft,
+            Texture2D bottom,
+            Texture2D bottomRight,
+            FilterMode filterMode,
+            Border<Vector2Int>? virtualSizes = null)
+            {
+                // Save texture references
+                topLeftBorderTexture = topLeft;
+                topBorderTexture = top;
+                topRightBorderTexture = topRight;
+                leftBorderTexture = left;
+                fillBordersTexture = fill;
+                rightBorderTexture = right;
+                bottomLeftBorderTexture = bottomLeft;
+                bottomBorderTexture = bottom;
+                bottomRightBorderTexture = bottomRight;
+
+                // Set texture filtering
+                topLeftBorderTexture.filterMode = filterMode;
+                topBorderTexture.filterMode = filterMode;
+                topRightBorderTexture.filterMode = filterMode;
+                leftBorderTexture.filterMode = filterMode;
+                fillBordersTexture.filterMode = filterMode;
+                rightBorderTexture.filterMode = filterMode;
+                bottomLeftBorderTexture.filterMode = filterMode;
+                bottomBorderTexture.filterMode = filterMode;
+                bottomRightBorderTexture.filterMode = filterMode;
+
+                // Set texture wrap modes
+                topBorderTexture.wrapMode = TextureWrapMode.Repeat;
+                bottomBorderTexture.wrapMode = TextureWrapMode.Repeat;
+                leftBorderTexture.wrapMode = TextureWrapMode.Repeat;
+                rightBorderTexture.wrapMode = TextureWrapMode.Repeat;
+                fillBordersTexture.wrapMode = TextureWrapMode.Repeat;
+
+                // Set flags
+                bordersSet = true;
+                EnableBorder = true;
+
+                // Set sizes
+                this.virtualSizes = virtualSizes ?? new Border<Vector2Int>()
+                {
+                    TopLeft = new Vector2Int(topLeft.width, topLeft.height),
+                    Top = new Vector2Int(top.width, top.height),
+                    TopRight = new Vector2Int(topRight.width, topRight.height),
+                    Left = new Vector2Int(left.width, left.height),
+                    Fill = new Vector2Int(fill.width, fill.height),
+                    Right = new Vector2Int(right.width, right.height),
+                    BottomLeft = new Vector2Int(bottomLeft.width, bottomLeft.height),
+                    Bottom = new Vector2Int(bottom.width, bottom.height),
+                    BottomRight = new Vector2Int(bottomRight.width, bottomRight.height)
+                };
+            }
 
             public override void Update()
             {
@@ -1098,6 +1227,22 @@ namespace Modded_Tooltips_Interaction
             /// <param name="text">Text to render inside tooltip.</param>
             public void Draw(string text)
             {
+                switch (FontIndex)
+                {
+                    case 0:
+                        Font = DaggerfallUI.LargeFont;
+                        break;
+                    case 1:
+                        Font = DaggerfallUI.TitleFont;
+                        break;
+                    case 2:
+                        Font = DaggerfallUI.SmallFont;
+                        break;
+                    case 3:
+                        Font = DaggerfallUI.DefaultFont;
+                        break;
+                }
+
                 // Validate
                 if (Font == null || string.IsNullOrEmpty(text))
                 {
@@ -1184,6 +1329,10 @@ namespace Modded_Tooltips_Interaction
                         }
                     }
 
+                    // Draw border
+                    if (EnableBorder && bordersSet)
+                        DrawBorder();
+
                     // Lower flag
                     drawToolTip = false;
                 }
@@ -1219,10 +1368,120 @@ namespace Modded_Tooltips_Interaction
                 previousSDFState = sdfState;
             }
 
+            void DrawBorder()
+            {
+                Rect drawRect = Rectangle;
+                if (drawRect != lastDrawRect)
+                {
+                    UpdateBorderDrawRects(drawRect);
+                    lastDrawRect = drawRect;
+                }
+
+                // Draw fill
+                DaggerfallUI.DrawTextureWithTexCoords(fillBordersRect, fillBordersTexture, new Rect(0, 0, (fillBordersRect.width / LocalScale.x) / virtualSizes.Fill.x, (fillBordersRect.height / LocalScale.y) / virtualSizes.Fill.y));
+
+                // Draw corners
+                DaggerfallUI.DrawTexture(topLeftBorderRect, topLeftBorderTexture);
+                DaggerfallUI.DrawTexture(topRightBorderRect, topRightBorderTexture);
+                DaggerfallUI.DrawTexture(bottomLeftBorderRect, bottomLeftBorderTexture);
+                DaggerfallUI.DrawTexture(bottomRightBorderRect, bottomRightBorderTexture);
+
+                // Draw edges
+                DaggerfallUI.DrawTextureWithTexCoords(topBorderRect, topBorderTexture, new Rect(0, 0, (topBorderRect.width / LocalScale.x) / virtualSizes.Top.x, 1));
+                DaggerfallUI.DrawTextureWithTexCoords(leftBorderRect, leftBorderTexture, new Rect(0, 0, 1, (leftBorderRect.height / LocalScale.y) / virtualSizes.Left.y));
+                DaggerfallUI.DrawTextureWithTexCoords(rightBorderRect, rightBorderTexture, new Rect(0, 0, 1, (rightBorderRect.height / LocalScale.y) / virtualSizes.Right.y));
+                DaggerfallUI.DrawTextureWithTexCoords(bottomBorderRect, bottomBorderTexture, new Rect(0, 0, (bottomBorderRect.width / LocalScale.y) / virtualSizes.Bottom.x, 1));
+            }
+
+            void UpdateBorderDrawRects(Rect drawRect)
+            {
+                // Round input rectangle to pixel coordinates
+                drawRect.x = Mathf.Round(drawRect.x);
+                drawRect.y = Mathf.Round(drawRect.y);
+                drawRect.xMax = Mathf.Round(drawRect.xMax);
+                drawRect.yMax = Mathf.Round(drawRect.yMax);
+
+                // Top-left
+                topLeftBorderRect.x = drawRect.x;
+                topLeftBorderRect.y = drawRect.y;
+                topLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * LocalScale.x);
+                topLeftBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * LocalScale.y);
+
+                // Top-right
+                topRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * LocalScale.x);
+                topRightBorderRect.y = drawRect.y;
+                topRightBorderRect.xMax = drawRect.xMax;
+                topRightBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * LocalScale.y);
+
+                // Bottom-left
+                bottomLeftBorderRect.x = drawRect.x;
+                bottomLeftBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.x * LocalScale.y);
+                bottomLeftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * LocalScale.x);
+                bottomLeftBorderRect.yMax = drawRect.yMax;
+
+                // Bottom-right
+                bottomRightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * LocalScale.x);
+                bottomRightBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * LocalScale.y);
+                bottomRightBorderRect.xMax = drawRect.xMax;
+                bottomRightBorderRect.yMax = drawRect.yMax;
+
+                // Top
+                topBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.TopLeft.x * LocalScale.x);
+                topBorderRect.y = drawRect.y;
+                topBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.TopRight.x * LocalScale.x);
+                topBorderRect.yMax = Mathf.Round(drawRect.y + virtualSizes.Top.y * LocalScale.y);
+
+                // Left
+                leftBorderRect.x = drawRect.x;
+                leftBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopLeft.y * LocalScale.y);
+                leftBorderRect.xMax = Mathf.Round(drawRect.x + virtualSizes.Left.x * LocalScale.x);
+                leftBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomLeft.y * LocalScale.y);
+
+                // Right
+                rightBorderRect.x = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * LocalScale.x);
+                rightBorderRect.y = Mathf.Round(drawRect.y + virtualSizes.TopRight.y * LocalScale.y);
+                rightBorderRect.xMax = drawRect.xMax;
+                rightBorderRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.BottomRight.y * LocalScale.y);
+
+                // Bottom
+                bottomBorderRect.x = Mathf.Round(drawRect.x + virtualSizes.BottomLeft.x * LocalScale.x);
+                bottomBorderRect.y = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * LocalScale.y);
+                bottomBorderRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.BottomRight.x * LocalScale.x);
+                bottomBorderRect.yMax = drawRect.yMax;
+
+                // Fill
+                fillBordersRect.xMin = Mathf.Round(drawRect.xMin + virtualSizes.Left.x * LocalScale.x);
+                fillBordersRect.yMin = Mathf.Round(drawRect.yMin + virtualSizes.Top.y * LocalScale.y);
+                fillBordersRect.xMax = Mathf.Round(drawRect.xMax - virtualSizes.Right.x * LocalScale.x);
+                fillBordersRect.yMax = Mathf.Round(drawRect.yMax - virtualSizes.Bottom.y * LocalScale.y);
+            }
+
             #endregion
         }
 
         #endregion Private Methods
+
+        static void LoadTextures()
+        {
+            if (!TextureReplacement.TryImportImage(tooltip_bg_bottom_name, true, out tooltip_bg_bottom))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_fill_name, true, out tooltip_bg_fill))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_left_name, true, out tooltip_bg_left))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_left_bottom_name, true, out tooltip_bg_left_bottom))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_letf_top_name, true, out tooltip_bg_letf_top))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_right_name, true, out tooltip_bg_right))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_right_bottom_name, true, out tooltip_bg_right_bottom))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_right_top_name, true, out tooltip_bg_right_top))
+                return;
+            if (!TextureReplacement.TryImportImage(tooltip_bg_top_name, true, out tooltip_bg_top))
+                return;
+        }
 
         #region Localization
         static void LoadTextData()

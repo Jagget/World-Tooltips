@@ -1,6 +1,6 @@
 {
     "ModTitle": "World Tooltips",
-    "ModVersion": "1.3",
+    "ModVersion": "1.4",
     "ModAuthor": "jefetienne",
     "ContactInfo": "https://forums.dfworkshop.net/memberlist.php?mode=viewprofile&u=2186",
     "DFUnity_Version": "1.0.0",
@@ -10,6 +10,15 @@
         "Assets/Game/Mods/WorldTooltips/Scripts/Modded_HUDTooltipWindow.cs",
         "Assets/Game/Mods/WorldTooltips/tooltip.dfmod.json",
         "Assets/Game/Mods/WorldTooltips/modsettings.json",
-        "Assets/Game/Mods/WorldTooltips/WorldTooltipsModData.csv"
+        "Assets/Game/Mods/WorldTooltips/WorldTooltipsModData.csv",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right_bottom.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_fill.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_letf_top.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_bottom.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_right_top.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_left.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_top.png",
+        "Assets/Game/Mods/WorldTooltips/Textures/tooltip_bg_left_bottom.png"
     ]
 }
