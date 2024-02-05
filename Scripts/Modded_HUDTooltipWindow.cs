@@ -53,6 +53,7 @@ namespace Modded_Tooltips_Interaction
         public static bool HideInteractTooltip { get; private set; }
         public static bool CenterText { get; private set; }
         public static bool Textured { get; private set; }
+        public static bool ShowLockLevel { get; private set; }
         public static int FontIndex { get; private set; }
         public static float FontScale { get; private set; }
         public static Color32 BgColor { get; private set; }
@@ -179,6 +180,7 @@ namespace Modded_Tooltips_Interaction
         static void LoadSettings(ModSettings modSettings, ModSettingsChange change)
         {
             HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
+            ShowLockLevel = modSettings.GetBool("Experimental", "ShowLockLevel");
             CenterText = modSettings.GetBool("Experimental", "CenterText");
             FontIndex = modSettings.GetInt("Experimental", "Font");
             Textured = modSettings.GetBool("Experimental", "Textured");
@@ -272,7 +274,9 @@ namespace Modded_Tooltips_Interaction
         private string EnumerateCustomHoverText(RaycastHit hit)
         {
             if (customGetHoverText.Count == 0)
+            {
                 return null;
+            }
 
             string result = null;
             bool stop = false;
@@ -293,7 +297,9 @@ namespace Modded_Tooltips_Interaction
                     }
 
                     if (stop)
+                    {
                         break;
+                    }
                 }
             }
 
@@ -316,9 +322,13 @@ namespace Modded_Tooltips_Interaction
                 if (isSame)
                 {
                     if (hit.distance <= prevDistance)
+                    {
                         return prevText;
+                    }
                     else
+                    {
                         return null;
+                    }
                 }
                 else
                 {
@@ -332,7 +342,9 @@ namespace Modded_Tooltips_Interaction
                     if (string.IsNullOrEmpty(result))
                     {
                         if (hit.transform.name.Length > 16 && hit.transform.name.Substring(0, 17) == "DaggerfallTerrain")
+                        {
                             stop = true;
+                        }
                     }
 
                     if (!stop)
@@ -442,7 +454,9 @@ namespace Modded_Tooltips_Interaction
                                 }
 
                                 if (string.IsNullOrEmpty(result))
+                                {
                                     result = npc.DisplayName;
+                                }
 
                                 prevDistance = PlayerActivate.StaticNPCActivationDistance;
                             }
@@ -517,7 +531,9 @@ namespace Modded_Tooltips_Interaction
                                     else
                                     {
                                         if (!HideInteractTooltip && string.IsNullOrEmpty(result))
+                                        {
                                             result = Localize("Interact");
+                                        }
 
                                         prevDistance = PlayerActivate.DefaultActivationDistance;
                                     }
@@ -560,7 +576,9 @@ namespace Modded_Tooltips_Interaction
                                         }
 
                                         if (string.IsNullOrEmpty(result))
+                                        {
                                             result = DaggerfallUnity.Instance.ItemHelper.ResolveItemLongName(((Item)qrb.TargetResource).DaggerfallUnityItem, false);
+                                        }
 
                                         prevDistance = PlayerActivate.DefaultActivationDistance;
                                     }
@@ -593,7 +611,9 @@ namespace Modded_Tooltips_Interaction
                                             result = item.LongName;
 
                                             if (item.stackCount > 1)
+                                            {
                                                 result = string.Format(Localize("StackCount"), result, item.stackCount);
+                                            }
                                         }
                                         else
                                         {
@@ -695,10 +715,21 @@ namespace Modded_Tooltips_Interaction
                             if (CheckComponent<DaggerfallActionDoor>(hit, out comp))
                             {
                                 var door = (DaggerfallActionDoor)comp;
-                                if (!door.IsLocked)
-                                    result = Localize("Door");
+                                if (door.IsLocked)
+                                {
+                                    if (ShowLockLevel)
+                                    {
+                                        result = string.Format(Localize("LockLevel"), result, door.CurrentLockValue);
+                                    }
+                                    else
+                                    {
+                                        result = string.Format(Localize("LockLevelHidden"), result);
+                                    }
+                                }
                                 else
-                                    result = string.Format(Localize("DoorLockLevel"), door.CurrentLockValue);
+                                {
+                                    result = Localize("Door");
+                                }
 
                                 prevDistance = PlayerActivate.DoorActivationDistance;
                             }
@@ -748,7 +779,7 @@ namespace Modded_Tooltips_Interaction
                     // Check for a static building hit
                     StaticBuilding building;
                     DFLocation.BuildingTypes buildingType;
-                    bool buildingUnlocked;
+                    bool buildingLocked;
                     int buildingLockValue;
 
                     Transform buildingOwner;
@@ -758,14 +789,18 @@ namespace Modded_Tooltips_Interaction
                         // Get building directory for location
                         BuildingDirectory buildingDirectory = GameManager.Instance.StreamingWorld.GetCurrentBuildingDirectory();
                         if (!buildingDirectory)
+                        {
                             return "<ERR: 010>";
+                        }
 
                         // Get detailed building data from directory
                         BuildingSummary buildingSummary;
                         if (!buildingDirectory.GetBuildingSummary(building.buildingKey, out buildingSummary))
+                        {
                             return "<ERR: 011>";
+                        }
 
-                        buildingUnlocked = playerActivate.BuildingIsUnlocked(buildingSummary);
+                        buildingLocked = !playerActivate.BuildingIsUnlocked(buildingSummary);
                         buildingLockValue = playerActivate.GetBuildingLockValue(buildingSummary);
                         buildingType = buildingSummary.BuildingType;
 
@@ -777,21 +812,29 @@ namespace Modded_Tooltips_Interaction
                         if (playerGPS.GetDiscoveredBuilding(building.buildingKey, out db))
                         {
                             string tooltip;
-                            if (buildingType != DFLocation.BuildingTypes.Town23)
-                            {
-                                tooltip = string.Format(Localize("GoTo"), db.displayName);
-                            }
-                            else
+                            if (buildingType == DFLocation.BuildingTypes.Town23)
                             {
                                 tooltip = string.Format(Localize("GoToCityWalls"), playerGPS.CurrentLocalizedLocationName);
                             }
-
-                            if (!buildingUnlocked)
+                            else
                             {
-                                tooltip = string.Format(Localize("LockLevel"), tooltip, buildingLockValue);
+                                tooltip = string.Format(Localize("GoTo"), db.displayName);
                             }
 
-                            if (!buildingUnlocked && buildingType <= DFLocation.BuildingTypes.Palace
+                            if (buildingLocked)
+                            {
+                                if (ShowLockLevel)
+                                {
+                                    tooltip = string.Format(Localize("LockLevel"), tooltip, buildingLockValue);
+                                }
+                                else
+                                {
+                                    tooltip = string.Format(Localize("LockLevelHidden"), tooltip);
+                                }
+                            }
+
+                            if (buildingLocked
+                                && buildingType <= DFLocation.BuildingTypes.Palace
                                 && buildingType != DFLocation.BuildingTypes.HouseForSale)
                             {
                                 string buildingClosedMessage = (buildingType == DFLocation.BuildingTypes.GuildHall)
@@ -799,7 +842,9 @@ namespace Modded_Tooltips_Interaction
                                                                 : TextManager.Instance.GetLocalizedText("storeClosed");
 
                                 if (buildingType == DFLocation.BuildingTypes.Palace)
+                                {
                                     buildingClosedMessage = Localize("PalaceClosed");
+                                }
 
                                 buildingClosedMessage = buildingClosedMessage.Replace("%d1", openHours[(int)buildingType].ToString());
                                 buildingClosedMessage = buildingClosedMessage.Replace("%d2", closeHours[(int)buildingType].ToString());
@@ -831,9 +876,13 @@ namespace Modded_Tooltips_Interaction
                     if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity
                         || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownHamlet
                         || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownVillage)
+                    {
                         return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
+                    }
                     else
+                    {
                         return string.Format(Localize("GoToRegion"), playerGPS.CurrentLocalizedRegionName);
+                    }
                 }
             }
 
@@ -892,7 +941,9 @@ namespace Modded_Tooltips_Interaction
             doorOut = new StaticDoor();
 
             if (dfuStaticDoors.Doors == null)
+            {
                 return false;
+            }
 
             var Doors = dfuStaticDoors.Doors;
 
@@ -951,7 +1002,9 @@ namespace Modded_Tooltips_Interaction
 
                 // Has to be after setting the parent, position, and rotation of the goDoor
                 if (created)
+                {
                     doorData.SetMinMax(c.bounds.min, c.bounds.max);
+                }
 
                 // Check if hit was inside trigger
                 // Much more performant
@@ -967,7 +1020,9 @@ namespace Modded_Tooltips_Interaction
                     found = true;
                     doorOut = Doors[i];
                     if (doorOut.doorType == DoorTypes.DungeonExit)
+                    {
                         break;
+                    }
                 }
             }
 
@@ -1010,7 +1065,9 @@ namespace Modded_Tooltips_Interaction
             {
                 doors = doorsTransform.GetComponentInParent<DaggerfallStaticDoors>();
                 if (doors)
+                {
                     owner = doors.transform;
+                }
             }
             else
             {
@@ -1033,7 +1090,9 @@ namespace Modded_Tooltips_Interaction
             {
                 buildings = buildingsTransform.GetComponentInParent<DaggerfallStaticBuildings>();
                 if (buildings)
+                {
                     owner = buildings.transform;
+                }
             }
             else
             {
@@ -1209,7 +1268,9 @@ namespace Modded_Tooltips_Interaction
                     Display.main.systemHeight != currentSystemHeight ||
                     Display.main.renderingHeight != currentRenderingHeight ||
                     DaggerfallUnity.Settings.Fullscreen != currentFullScreen)
+                {
                     UpdateMouseOffset();
+                }
             }
 
             private void UpdateMouseOffset()
@@ -1291,7 +1352,9 @@ namespace Modded_Tooltips_Interaction
             public override void Draw()
             {
                 if (!Enabled)
+                {
                     return;
+                }
 
                 if (drawToolTip)
                 {
@@ -1312,7 +1375,9 @@ namespace Modded_Tooltips_Interaction
 
                     // Draw border
                     if (EnableBorder && bordersSet)
+                    {
                         DrawBorder();
+                    }
 
                     // Draw tooltip text
                     for (int i = 0; i < textRows.Length; i++)
@@ -1347,7 +1412,9 @@ namespace Modded_Tooltips_Interaction
                 // Do nothing if text has not changed since last time
                 bool sdfState = Font.IsSDFCapable;
                 if (text == lastText && sdfState == previousSDFState)
+                {
                     return;
+                }
 
                 // Split into rows based on \r escape character
                 // Text read from plain-text files will become \\r so need to replace this first
@@ -1363,7 +1430,9 @@ namespace Modded_Tooltips_Interaction
                 {
                     float width = Font.CalculateTextWidth(textRows[i], Scale);
                     if (width > widestRow)
+                    {
                         widestRow = width;
+                    }
                 }
                 previousSDFState = sdfState;
             }
@@ -1464,23 +1533,49 @@ namespace Modded_Tooltips_Interaction
         static void LoadTextures()
         {
             if (!TextureReplacement.TryImportTexture(TooltipBgTopLeftName, true, out TooltipBgTopLeft))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgTopName, true, out TooltipBgTop))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgTopRightName, true, out TooltipBgTopRight))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgLeftName, true, out TooltipBgLeft))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgFillName, true, out TooltipBgFill))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgRightName, true, out TooltipBgRight))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgBottomLeftName, true, out TooltipBgBottomLeft))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgBottomName, true, out TooltipBgBottom))
+            {
                 return;
+            }
+
             if (!TextureReplacement.TryImportTexture(TooltipBgBottomRightName, true, out TooltipBgBottomRight))
+            {
                 return;
+            }
         }
 
         #region Localization
@@ -1489,7 +1584,9 @@ namespace Modded_Tooltips_Interaction
             const string csvFilename = "WorldTooltipsModData.csv";
 
             if (textDataBase == null)
+            {
                 textDataBase = StringTableCSVParser.LoadDictionary(csvFilename);
+            }
 
             return;
         }
@@ -1497,7 +1594,9 @@ namespace Modded_Tooltips_Interaction
         public static string Localize(string Key)
         {
             if (textDataBase.ContainsKey(Key))
+            {
                 return textDataBase[Key];
+            }
 
             return string.Empty;
         }

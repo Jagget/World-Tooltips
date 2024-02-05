@@ -1,28 +1,28 @@
 ﻿Key,Value
-Bed,"Bed"
-Bookshelf,"Bookshelf"
-BulletinBoard,"Bulletin Board"
-Cabinets,"Cabinets"
-Chest,"Chest"
-Crate,"Crate"
-Cupboard,"Cupboard"
-DeadEnemy,"{0} (dead)"
-Door,"Door"
-DoorLockLevel,"Door\rLock Level: {0}"
-Dresser,"Dresser"
-GoTo,"To\r{0}"
-GoToCityWalls,"To\r{0} City Walls"
-GoToRegion,"To\r{0} Region"
-Interact,"<Interact>"
-Ladder,"Ladder"
-Lever,"Lever"
-LockLevel,"{0}\rLock Level: {1}"
-LootPile,"Loot Pile"
-Mantella,"The Mantella"
-PalaceClosed,"Palace is closed. Open from %d1:00 to %d2:00."
-Shelf,"Shelf"
-Shop Shelf,"Shop Shelf"
-StackCount,"{0} ({1})"
-TotemOfSeptim,"The Totem of Tiber Septim"
-Wardrobe,"Wardrobe"
-Wheel,"Wheel"
+Bed,Bed
+Bookshelf,Bookshelf
+BulletinBoard,Bulletin Board
+Cabinets,Cabinets
+Chest,Chest
+Crate,Crate
+Cupboard,Cupboard
+DeadEnemy,{0} (dead)
+Door,Door
+Dresser,Dresser
+GoTo,To\r{0}
+GoToCityWalls,To\r{0} City Walls
+GoToRegion,To\r{0} Region
+Interact,<Interact>
+Ladder,Ladder
+Lever,Lever
+LockLevel,{0}\rLock Level: {1}
+LockLevelHidden,{0}\rLocked
+LootPile,Loot Pile
+Mantella,The Mantella
+PalaceClosed,Palace is closed. Open from %d1:00 to %d2:00.
+Shelf,Shelf
+Shop Shelf,Shop Shelf
+StackCount,{0} ({1})
+TotemOfSeptim,The Totem of Tiber Septim
+Wardrobe,Wardrobe
+Wheel,Wheel

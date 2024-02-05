@@ -1,28 +1,28 @@
 ﻿Key,Value
-Bed,"Кровать"
-Bookshelf,"Книги"
-BulletinBoard,"Доска объявлений"
-Cabinets,"Шкаф"
-Chest,"Сундук"
-Crate,"Ящик"
-Cupboard,"Шкаф"
-DeadEnemy,"{0} (труп)"
-Door,"Дверь"
-DoorLockLevel,"Дверь\rУровень замка: {0}"
-Dresser,"Комод"
-GoTo,"{0}"
+Bed,Кровать
+Bookshelf,Книги
+BulletinBoard,Доска объявлений
+Cabinets,Шкаф
+Chest,Сундук
+Crate,Ящик
+Cupboard,Шкаф
+DeadEnemy,{0} (труп)
+Door,Дверь
+Dresser,Комод
+GoTo,{0}
 GoToCityWalls,"{0}, городская стена"
-GoToRegion,"Регион {0}"
-Interact,"<Активировать>"
-Ladder,"Лестница"
-Lever,"Рычаг"
-LockLevel,"{0}\rУровень замка: {1}"
-LootPile,"Куча лута"
-Mantella,"Мантелла"
-PalaceClosed,"Дворец закрыт. Прием населения с %d1:00 до %d2:00."
-Shelf,"Полки"
-Shop Shelf,"Прилавок"
-StackCount,"{0} ({1})"
-TotemOfSeptim,"Тотем Тайбера Септима"
-Wardrobe,"Гардероб"
-Wheel,"Колесо"
+GoToRegion,Регион {0}
+Interact,<Активировать>
+Ladder,Лестница
+Lever,Рычаг
+LockLevel,{0}\rУровень замка: {1}
+LockLevelHidden,{0}\rЗакрыто
+LootPile,Куча лута
+Mantella,Мантелла
+PalaceClosed,Дворец закрыт. Прием населения с %d1:00 до %d2:00.
+Shelf,Полки
+Shop Shelf,Прилавок
+StackCount,{0} ({1})
+TotemOfSeptim,Тотем Тайбера Септима
+Wardrobe,Гардероб
+Wheel,Колесо

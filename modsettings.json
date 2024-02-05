@@ -1,5 +1,5 @@
 {
-    "Version": "1.4",
+    "Version": "1.5",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -22,7 +22,7 @@
             "IsAdvanced": true,
             "Keys": [
                 {
-                    "Value": false,
+                    "Value": true,
                     "Name": "CenterText",
                     "Description": "Center the text in the tooltip (otherwise it is left-aligned)",
                     "$version": "v1",
@@ -47,11 +47,16 @@
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderFloatKey"
                 },
                 {
-                    "Value": false,
-                    "Name": "Textured",
-                    "Description": "Use textured background, otherwise use color (requires restart)",
+                    "Value": {
+                        "r": 230,
+                        "g": 230,
+                        "b": 200,
+                        "a": 255
+                    },
+                    "Name": "TextColor",
+                    "Description": "Text color",
                     "$version": "v1",
-                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ColorKey"
                 },
                 {
                     "Value": {
@@ -66,16 +71,18 @@
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ColorKey"
                 },
                 {
-                    "Value": {
-                        "r": 230,
-                        "g": 230,
-                        "b": 200,
-                        "a": 0
-                    },
-                    "Name": "TextColor",
-                    "Description": "Text color",
+                    "Value": true,
+                    "Name": "Textured",
+                    "Description": "Use textured background, otherwise use color (requires restart)",
                     "$version": "v1",
-                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ColorKey"
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Value": true,
+                    "Name": "ShowLockLevel",
+                    "Description": "If the door is locked, show the lock level",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }
             ],
             "$version": "v1"
