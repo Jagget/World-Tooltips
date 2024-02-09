@@ -78,7 +78,7 @@
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 },
                 {
-                    "Value": true,
+                    "Value": false,
                     "Name": "ShowLockLevel",
                     "Description": "If the door is locked, show the lock level",
                     "$version": "v1",

@@ -1,0 +1,30 @@
+schema: *key, $text
+
+- Mod details
+Mod.Description, "Отображает информацию о NPC, зданиях, предметах и других интерактивных объектах."
+
+- Settings
+Settings.GeneralSettings.Name, "Основные"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "Скрыть секретные объекты"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Не показывать подсказку на активных объектах, которые, возможно, должны были быть секретными, особенно в случае квестовых загадок."
+Settings.Experimental.Name, "Экспериментальные"
+Settings.Experimental.Description, "Меняйте осторожно!"
+Settings.Experimental.CenterText.Name, "Центрировать"
+Settings.Experimental.CenterText.Description, "Центрировать текст внутри тултипа"
+Settings.Experimental.Font.Name, "Шрифт"
+Settings.Experimental.Font.Description, "Шрифт текста из игры (Fonts/FONT000X)"
+Settings.Experimental.FontScale.Name, "Масштаб шрифта"
+Settings.Experimental.FontScale.Description, "Масштабирование шрифта (больше меньше), может вызвать графические артефакты"
+Settings.Experimental.TextColor.Name, "Цвет текста"
+Settings.Experimental.TextColor.Description, "Цвет текста"
+Settings.Experimental.BackgroundColor.Name, "Цвет фона"
+Settings.Experimental.BackgroundColor.Description, "Цвет фона"
+Settings.Experimental.Textured.Name, "Текстура"
+Settings.Experimental.Textured.Description, "Использовать текстуру для фона"
+Settings.Experimental.ShowLockLevel.Name, "Уровень замка"
+Settings.Experimental.ShowLockLevel.Description, "Отображать уровень замка на запертых дверях"
+
+- Presets
+Presets.Default.Title, "По-умолчанию"
+Presets.Default.Description, "Настройки по-умолчанию"
+

@@ -1,0 +1,23 @@
+[
+    {
+        "Title": "Default",
+        "Author": "Jagget",
+        "Description": "Default settings",
+        "SettingsVersion": "1.5",
+        "Values": {
+            "GeneralSettings": {
+                "HideDefaultInteractTooltip": "False"
+            },
+            "Experimental": {
+                "CenterText": "True",
+                "Font": "3",
+                "FontScale": "1",
+                "TextColor": "E6E6C8FF",
+                "BackgroundColor": "404040D2",
+                "Textured": "True",
+                "ShowLockLevel": "False"
+            }
+        },
+        "$version": "v1"
+    }
+]
