@@ -213,10 +213,13 @@ namespace Modded_Tooltips_Interaction
             AutoSize = AutoSizeModes.None;
 
             var text = GetHoverText();
-            if (!string.IsNullOrEmpty(text))
+
+            if (string.IsNullOrEmpty(text))
             {
-                tooltip.Draw(text);
+                return;
             }
+
+            tooltip.Draw(text);
         }
 
         #endregion Public Methods
