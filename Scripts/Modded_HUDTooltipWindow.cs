@@ -49,6 +49,7 @@ namespace Modded_Tooltips_Interaction
         #region Settings
 
         public static bool HideInteractTooltip { get; private set; }
+        public static bool ShowHiddenDoorsTooltip { get; private set; }
         public static bool CenterText { get; private set; }
         public static bool Textured { get; private set; }
         public static bool ShowLockLevel { get; private set; }
@@ -180,6 +181,7 @@ namespace Modded_Tooltips_Interaction
         static void LoadSettings(ModSettings modSettings, ModSettingsChange change)
         {
             HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
+            ShowHiddenDoorsTooltip = modSettings.GetBool("GeneralSettings", "ShowHiddenDoorsTooltip");
             ShowLockLevel = modSettings.GetBool("Experimental", "ShowLockLevel");
             CenterText = modSettings.GetBool("Experimental", "CenterText");
             FontIndex = modSettings.GetInt("Experimental", "Font");
@@ -479,7 +481,7 @@ namespace Modded_Tooltips_Interaction
                             if (mesh)
                             {
                                 int record;
-                                if (int.TryParse(string.Join("", mesh.name.SkipWhile(c => !char.IsDigit(c)).TakeWhile(c => char.IsDigit(c))), out record))
+                                if (TryExtractNumber(mesh.name, out record))
                                 {
                                     switch (record)
                                     {
@@ -610,7 +612,7 @@ namespace Modded_Tooltips_Interaction
                                 if (mesh)
                                 {
                                     int record;
-                                    if (int.TryParse(string.Join("", mesh.name.SkipWhile(c => !char.IsDigit(c)).TakeWhile(c => char.IsDigit(c))), out record))
+                                    if (TryExtractNumber(mesh.name, out record))
                                     {
                                         switch (record)
                                         {
@@ -695,6 +697,40 @@ namespace Modded_Tooltips_Interaction
                     {
                         var door = (DaggerfallActionDoor)comp;
                         result = Localize("Door");
+                        int record;
+                        if (TryExtractNumber(door.name, out record) && !ShowHiddenDoorsTooltip)
+                        {
+                            switch (record)
+                            {
+                                case 55006:
+                                case 55007:
+                                case 55008:
+                                case 55009:
+                                case 55010:
+                                case 55011:
+                                case 55012:
+                                case 55017:
+                                case 55018:
+                                case 55019:
+                                case 55020:
+                                case 55021:
+                                case 55022:
+                                case 55023:
+                                case 55024:
+                                case 55025:
+                                case 55026:
+                                case 55027:
+                                case 55028:
+                                case 55029:
+                                case 55030:
+                                case 55031:
+                                case 55032:
+                                case 72100:
+                                    result = "";
+                                    return result;
+                            }
+                        }
+
                         if (door.IsLocked)
                         {
                             result = ShowLockLevel
@@ -1530,6 +1566,11 @@ namespace Modded_Tooltips_Interaction
             {
                 return;
             }
+        }
+
+        bool TryExtractNumber(string str, out int number)
+        {
+            return int.TryParse(string.Join("", str.SkipWhile(c => !char.IsDigit(c)).TakeWhile(char.IsDigit)), out number);
         }
 
         #region Localization

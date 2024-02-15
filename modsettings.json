@@ -1,5 +1,5 @@
 {
-    "Version": "1.5",
+    "Version": "1.6",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -10,6 +10,13 @@
                     "Value": false,
                     "Name": "HideDefaultInteractTooltip",
                     "Description": "Do not give a default hint for interactable objects that may have been intended to be secret, especially in the case of main quest puzzles.",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Value": true,
+                    "Name": "ShowHiddenDoorsTooltip",
+                    "Description": "Show tooltip on secret and hidden wall-like doors",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }

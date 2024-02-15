@@ -7,6 +7,8 @@ Mod.Description, "Отображает информацию о NPC, здания
 Settings.GeneralSettings.Name, "Основные"
 Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "Скрыть секретные объекты"
 Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Не показывать подсказку на активных объектах, которые, возможно, должны были быть секретными, особенно в случае квестовых загадок."
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "Тултип на секретных дверях"
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Показывать подсказку на на секретных дверях, обычно в подземельях, которые выглядят как стены."
 Settings.Experimental.Name, "Экспериментальные"
 Settings.Experimental.Description, "Меняйте осторожно!"
 Settings.Experimental.CenterText.Name, "Центрировать"

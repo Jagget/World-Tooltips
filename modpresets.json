@@ -3,10 +3,11 @@
         "Title": "Default",
         "Author": "Jagget",
         "Description": "Default settings",
-        "SettingsVersion": "1.5",
+        "SettingsVersion": "1.6",
         "Values": {
             "GeneralSettings": {
-                "HideDefaultInteractTooltip": "False"
+                "HideDefaultInteractTooltip": "False",
+                "ShowHiddenDoorsTooltip": "True"
             },
             "Experimental": {
                 "CenterText": "True",
