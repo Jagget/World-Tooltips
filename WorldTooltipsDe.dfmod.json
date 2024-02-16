@@ -1,0 +1,20 @@
+{
+    "ModTitle": "World Tooltips De",
+    "ModVersion": "1.6.0",
+    "ModAuthor": "Deepfighter",
+    "ContactInfo": "https://forums.dfworkshop.net",
+    "DFUnity_Version": "1.0.0",
+    "ModDescription": "Zeigt Informationen \u00fcber NPCs, Geb\u00e4ude, Gegenst\u00e4nde und andere interaktive Objekte als Tooltipp an.",
+    "GUID": "b5abe9c3-d92f-40ba-a713-13f1979aa869",
+    "Files": [
+        "Assets/Game/Mods/WorldTooltips/German/WorldTooltipsModData.csv",
+        "Assets/Game/Mods/WorldTooltips/WorldTooltipsDe.dfmod.json"
+    ],
+    "Dependencies": [
+        {
+            "Name": "world tooltips",
+            "IsOptional": false,
+            "IsPeer": false
+        }
+    ]
+}

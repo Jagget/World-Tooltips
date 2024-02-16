@@ -1,0 +1,10 @@
+Changements par rapport au mod original :
+Une option permet de cacher le niveau de verrouillage.
+Une option permet de choisir de montrer ou pas les infobulles des portes cachées.
+Vous pouvez appliquer un facteur d'échelle à la fonte (peut causer des artéfacts visuels).
+Vous pouvez choisir entre un fond texturé ou un fond de couleur.
+Possibilité de changer la couleur de fond.
+Possibilité de changer la couleur du texte.
+Possibilité de choisir la fonte du texte (choix du fichier Fonts/FONT000X comme infobulle).
+Il est à nouveau possible de centrer le texte.
+Le mod peut être traduit.

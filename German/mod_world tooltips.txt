@@ -1,0 +1,32 @@
+schema: *key, $text
+
+- Mod details
+Mod.Description, "Zeigt Informationen über NPCs, Gebäude, Gegenstände und andere interaktive Objekte als Tooltipp an."
+
+- Settings
+Settings.GeneralSettings.Name, "Allgemeine Einstellungen"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "Interaktive Tooltipps verstecken"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Kein Anzeigen interaktiver Objekte, die eigentlich geheim bleiben sollten, insbesondere bei Rätseln der Hauptquest."
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "Tooltipp bei Geheimtüren"
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Anzeigen von Tooltipps bei geheimen und versteckten wandähnlichen Türen."
+Settings.Experimental.Name, "Experimentell"
+Settings.Experimental.Description, "Mit bedacht wählen!"
+Settings.Experimental.CenterText.Name, "Tooltipp zentrieren"
+Settings.Experimental.CenterText.Description, "Text des Tooltipps zentrieren (Standard: linksbündig)."
+Settings.Experimental.Font.Name, "Schriftart"
+Settings.Experimental.Font.Description, "Welche Schriftart für Tooltipps verwenden (Fonts/FONT000X)."
+Settings.Experimental.FontScale.Name, "Skalierung der Schriftart"
+Settings.Experimental.FontScale.Description, "Möglichkeit der Skalierung der Schriftart in die eine oder andere Richtung. Dies könnte visuelle Artefakte erzeugen."
+Settings.Experimental.TextColor.Name, "Schriftfarbe"
+Settings.Experimental.TextColor.Description, "Einstellung der Schriftfarbe."
+Settings.Experimental.BackgroundColor.Name, "Hintergrundfarbe"
+Settings.Experimental.BackgroundColor.Description, "Einstellung der Hintergrundfarbe  (erfordert Neustart)."
+Settings.Experimental.Textured.Name, "Texturierter Hintergrund"
+Settings.Experimental.Textured.Description, "Nutzt texturierten Hintergrund, sonst Hintergrundfarbe (erfordert Neustart)."
+Settings.Experimental.ShowLockLevel.Name, "Anzeigen Schlossstufe"
+Settings.Experimental.ShowLockLevel.Description, "Falls die Tür verschlossen ist, zeigt es die Schlossstufe an."
+
+- Presets
+Presets.Default.Title, "Auf Standardwerte zurücksetzen"
+Presets.Default.Description, "Setzt die Werte auf die Standardwerte zurück."
+

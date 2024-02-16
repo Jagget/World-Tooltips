@@ -1,0 +1,28 @@
+﻿Key,Value
+Bed,Lit
+Bookshelf,Bibliothèque
+BulletinBoard,Panneau d'affichage
+Cabinets,Meuble
+Chest,Coffre
+Crate,Caisse
+Cupboard,Armoire
+DeadEnemy,{0} (mort)
+Door,Porte
+Dresser,Commode
+GoTo,Vers\r{0}
+GoToCityWalls,Vers les murs\rde r{0}
+GoToRegion,Vers la région\rr{0}
+Interact,<Interagir>
+Ladder,Échelle
+Lever,Levier
+LockLevel,{0}\rNiveau de serrure: {1}
+LockLevelHidden,{0}\rVerrouillé
+LootPile,Tas de butin
+Mantella,Le Mantella
+PalaceClosed,Le palais est fermé. Ouvert de %d1:00 à %d2:00.
+Shelf,Étagère
+ShopShelf,Étagère de magasin
+StackCount,{0} ({1})
+TotemOfSeptim,Le Totem de Tiber Septim
+Wardrobe,Garde-robe
+Wheel,Roue

@@ -230,13 +230,12 @@ namespace Modded_Tooltips_Interaction
 
         private static void RegisterCustomTooltip(float activationDistance, Func<RaycastHit, string> func)
         {
-            List<Func<RaycastHit, string>> list;
-            if (!customGetHoverText.TryGetValue(activationDistance, out list))
+            if (!customGetHoverText.TryGetValue(activationDistance, out _))
             {
-                list = customGetHoverText[activationDistance] = new List<Func<RaycastHit, string>>();
+                customGetHoverText[activationDistance] = new List<Func<RaycastHit, string>>();
             }
 
-            list.Add(func);
+            customGetHoverText[activationDistance].Add(func);
             Debug.Log("************World Tooltips: Registered Custom Tooltip");
         }
 
@@ -286,13 +285,8 @@ namespace Modded_Tooltips_Interaction
 
             string result = null;
             var stop = false;
-            foreach (var kv in customGetHoverText)
+            foreach (var kv in customGetHoverText.Where(kv => kv.Key >= hit.distance))
             {
-                if (hit.distance > kv.Key)
-                {
-                    continue;
-                }
-
                 foreach (var func in kv.Value)
                 {
                     result = func(hit);

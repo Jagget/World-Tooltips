@@ -1,0 +1,31 @@
+schema: *key, $text
+
+- Mod details
+Mod.Description, "Affiche dans des infobulles des informations sur les PNJ, les bâtiments, les objets et autres éléments avec lesquels on peut interagir."
+
+- Settings
+Settings.GeneralSettings.Name, "ParamètresGénéraux"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "CacherInfobullesParDéfaut"
+Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Pas d'indice par défaut pour les objets interactifs qui devraient être secrets, en particulier pour les énigmes de la quête principale."
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "MontrerInfobulleSurPortesCachées"
+Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Afficher une infobulle sur les portes secrètes et les portes cachées de type mur."
+Settings.Experimental.Name, "Expérimental"
+Settings.Experimental.Description, "À utiliser avec précaution !"
+Settings.Experimental.CenterText.Name, "CentrerTexte"
+Settings.Experimental.CenterText.Description, "Centrer le texte dans l'infobulle (sinon il est aligné à gauche)."
+Settings.Experimental.Font.Name, "Fonte"
+Settings.Experimental.Font.Description, "Fonte à utiliser pour les infobulles (Fonts/FONT000X)."
+Settings.Experimental.FontScale.Name, "ÉchelleDeFonte"
+Settings.Experimental.FontScale.Description, "Mettre la fonte à l'échelle dans un sens ou dans l'autre. Peut provoquer des artefacts visuels."
+Settings.Experimental.TextColor.Name, "CouleurDuTexte"
+Settings.Experimental.TextColor.Description, "Couleur du texte de l'infobulle"
+Settings.Experimental.BackgroundColor.Name, "CouleurDeFond"
+Settings.Experimental.BackgroundColor.Description, "Couleur de fond (nécessite un redémarrage)."
+Settings.Experimental.Textured.Name, "FondTransparent"
+Settings.Experimental.Textured.Description, "Montrer les textures par transparence, sinon couleur de fond (nécessite un redémarrage)."
+Settings.Experimental.ShowLockLevel.Name, "MontrerNiveauVerrouillage"
+Settings.Experimental.ShowLockLevel.Description, "Si la porte est verrouillée, afficher le niveau de verrouillage."
+
+- Presets
+Presets.Default.Title, "Défaut"
+Presets.Default.Description, "Paramètres par défaut"
