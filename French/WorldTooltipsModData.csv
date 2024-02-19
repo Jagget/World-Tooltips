@@ -10,8 +10,8 @@ DeadEnemy,{0} (mort)
 Door,Porte
 Dresser,Commode
 GoTo,Vers\r{0}
-GoToCityWalls,Vers les murs\rde r{0}
-GoToRegion,Vers la région\rr{0}
+GoToCityWalls,Vers les murs de\r{0}
+GoToRegion,Vers la région\r{0}
 Interact,<Interagir>
 Ladder,Échelle
 Lever,Levier
