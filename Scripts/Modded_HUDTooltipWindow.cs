@@ -1,7 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 using DaggerfallConnect;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
@@ -13,8 +12,9 @@ using DaggerfallWorkshop.Game.Utility.ModSupport;
 using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
 using DaggerfallWorkshop.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
+using UnityEngine;
 
-namespace Modded_Tooltips_Interaction
+namespace Game.Mods.WorldTooltips.Scripts
 {
     public class Modded_HUDTooltipWindow : Panel
     {
@@ -26,7 +26,7 @@ namespace Modded_Tooltips_Interaction
 
         #region Fields
 
-        static Dictionary<string, string> textDataBase = null;
+        static Dictionary<string, string> textDataBase;
         public static string TooltipBgTopLeftName = "tooltip_bg_0-0.png";
         public static string TooltipBgTopName = "tooltip_bg_1-0.png";
         public static string TooltipBgTopRightName = "tooltip_bg_2-0.png";
@@ -50,6 +50,7 @@ namespace Modded_Tooltips_Interaction
 
         public static bool HideInteractTooltip { get; private set; }
         public static bool ShowHiddenDoorsTooltip { get; private set; }
+        public static bool OnlyInInfoMode { get; private set; }
         public static bool CenterText { get; private set; }
         public static bool Textured { get; private set; }
         public static bool ShowLockLevel { get; private set; }
@@ -75,7 +76,7 @@ namespace Modded_Tooltips_Interaction
         private static Dictionary<float, List<Func<RaycastHit, string>>> customGetHoverText = new Dictionary<float, List<Func<RaycastHit, string>>>();
 
         GameObject mainCamera;
-        int playerLayerMask = 0;
+        int playerLayerMask;
 
         //Caching
         Transform prevHit;
@@ -113,7 +114,7 @@ namespace Modded_Tooltips_Interaction
         public static void Init(InitParams initParams)
         {
             mod = initParams.Mod;
-            mod.MessageReceiver = Modded_HUDTooltipWindow.MessageReceiver;
+            mod.MessageReceiver = MessageReceiver;
             mod.LoadSettingsCallback = LoadSettings;
             StateManager.OnStartNewGame += OnGameStarted;
             StartGameBehaviour.OnStartGame += OnNewGameStarted;
@@ -182,6 +183,7 @@ namespace Modded_Tooltips_Interaction
         {
             HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
             ShowHiddenDoorsTooltip = modSettings.GetBool("GeneralSettings", "ShowHiddenDoorsTooltip");
+            OnlyInInfoMode = modSettings.GetBool("GeneralSettings", "OnlyInInfoMode");
             ShowLockLevel = modSettings.GetBool("Experimental", "ShowLockLevel");
             CenterText = modSettings.GetBool("Experimental", "CenterText");
             FontIndex = modSettings.GetInt("Experimental", "Font");
@@ -200,6 +202,11 @@ namespace Modded_Tooltips_Interaction
         public override void Update()
         {
             base.Update();
+
+            if (OnlyInInfoMode && GameManager.Instance.PlayerActivate.CurrentMode != PlayerActivateModes.Info)
+            {
+                return;
+            }
 
             // Weird bug occurs when the player is clicking on a static door from a distance because the activation creates another "goDoor"
             // which overlaps and prevents the player from going in. So we must delete the tooltip's goDoor beforehand if the player is activating
@@ -1093,7 +1100,7 @@ namespace Modded_Tooltips_Interaction
         {
             #region Fields
 
-            bool bordersSet = false;
+            bool bordersSet;
             Texture2D fillBordersTexture;
             Texture2D topBorderTexture, bottomBorderTexture;
             Texture2D leftBorderTexture, rightBorderTexture;
@@ -1101,15 +1108,15 @@ namespace Modded_Tooltips_Interaction
             Texture2D bottomLeftBorderTexture, bottomRightBorderTexture;
 
             Rect lastDrawRect;
-            Rect fillBordersRect = new Rect();
-            Rect topLeftBorderRect = new Rect();
-            Rect topRightBorderRect = new Rect();
-            Rect bottomLeftBorderRect = new Rect();
-            Rect bottomRightBorderRect = new Rect();
-            Rect topBorderRect = new Rect();
-            Rect leftBorderRect = new Rect();
-            Rect rightBorderRect = new Rect();
-            Rect bottomBorderRect = new Rect();
+            Rect fillBordersRect;
+            Rect topLeftBorderRect;
+            Rect topRightBorderRect;
+            Rect bottomLeftBorderRect;
+            Rect bottomRightBorderRect;
+            Rect topBorderRect;
+            Rect leftBorderRect;
+            Rect rightBorderRect;
+            Rect bottomBorderRect;
 
             public bool EnableBorder { get; set; }
             Border<Vector2Int> virtualSizes;
@@ -1122,9 +1129,9 @@ namespace Modded_Tooltips_Interaction
             private int currentRenderingHeight;
             private bool currentFullScreen;
 
-            bool drawToolTip = false;
+            bool drawToolTip;
             string[] textRows;
-            float widestRow = 0;
+            float widestRow;
             string lastText = string.Empty;
             bool previousSDFState;
 
@@ -1230,7 +1237,7 @@ namespace Modded_Tooltips_Interaction
                 EnableBorder = true;
 
                 // Set sizes
-                this.virtualSizes = virtualSizes ?? new Border<Vector2Int>()
+                this.virtualSizes = virtualSizes ?? new Border<Vector2Int>
                 {
                     TopLeft = new Vector2Int(topLeft.width, topLeft.height),
                     Top = new Vector2Int(top.width, top.height),
@@ -1558,7 +1565,6 @@ namespace Modded_Tooltips_Interaction
 
             if (!TextureReplacement.TryImportTexture(TooltipBgBottomRightName, true, out TooltipBgBottomRight))
             {
-                return;
             }
         }
 
@@ -1577,8 +1583,6 @@ namespace Modded_Tooltips_Interaction
             {
                 textDataBase = StringTableCSVParser.LoadDictionary(csvFilename);
             }
-
-            return;
         }
 
         public static string Localize(string key)

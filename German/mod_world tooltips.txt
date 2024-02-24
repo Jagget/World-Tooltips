@@ -9,6 +9,8 @@ Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "Interaktive Tooltipps
 Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Kein Anzeigen interaktiver Objekte, die eigentlich geheim bleiben sollten, insbesondere bei Rätseln der Hauptquest."
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "Tooltipp bei Geheimtüren"
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Anzeigen von Tooltipps bei geheimen und versteckten wandähnlichen Türen."
+Settings.GeneralSettings.OnlyInInfoMode.Name, "Nur im Infomodus"
+Settings.GeneralSettings.OnlyInInfoMode.Description, "Tooltipp nur anzeigen, wenn die Interaktion im Infomodus erfolgt."
 Settings.Experimental.Name, "Experimentell"
 Settings.Experimental.Description, "Mit bedacht wählen!"
 Settings.Experimental.CenterText.Name, "Tooltipp zentrieren"

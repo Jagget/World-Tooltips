@@ -6,20 +6,20 @@ Cabinets,Schrank
 Chest,Truhe
 Crate,Kiste
 Cupboard,Wandschrank
-DeadEnemy,{0} (tot)
+DeadEnemy,{0} [tot]
 Door,Tür
 Dresser,Kommode
-GoTo,Zu\r{0}
-GoToCityWalls,Zu\r{0} Stadtmauern
-GoToRegion,Zu\r{0} Region
+GoTo,Gehe in\r{0}
+GoToCityWalls,Gehe in die Stadtmauer\rvon {0}
+GoToRegion,Gehe nach\r{0} Region
 Interact,<Interaktion>
 Ladder,Leiter
 Lever,Hebel
 LockLevel,{0}\rSchlossstufe: {1}
-LockLevelHidden,{0}\rverschlossen
+LockLevelHidden,{0}\r[verschlossen]
 LootPile,Beutehaufen
 Mantella,Das Mantella
-PalaceClosed,Palast ist verschlossen. Geöffnet von %d1:00 bis %d2:00.
+PalaceClosed,Der Palast ist geschlossen. Geöffnet von %d1:00 bis %d2:00.
 Shelf,Regal
 ShopShelf,Verkaufsregal
 StackCount,{0} ({1})

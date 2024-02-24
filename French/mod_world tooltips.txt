@@ -9,6 +9,8 @@ Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "CacherInfobullesParD�
 Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Pas d'indice par défaut pour les objets interactifs qui devraient être secrets, en particulier pour les énigmes de la quête principale."
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "MontrerInfobulleSurPortesCachées"
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Afficher une infobulle sur les portes secrètes et les portes cachées de type mur."
+Settings.GeneralSettings.OnlyInInfoMode.Name, "Seulement en mode Info"
+Settings.GeneralSettings.OnlyInInfoMode.Description, "On ne montre l'infobulle que quand l’interaction est en mode Info."
 Settings.Experimental.Name, "Expérimental"
 Settings.Experimental.Description, "À utiliser avec précaution !"
 Settings.Experimental.CenterText.Name, "CentrerTexte"
