@@ -51,6 +51,7 @@ namespace Game.Mods.WorldTooltips.Scripts
         public static bool HideInteractTooltip { get; private set; }
         public static bool ShowHiddenDoorsTooltip { get; private set; }
         public static bool OnlyInInfoMode { get; private set; }
+        public static bool NamesOfRestrainedFoes { get; private set; }
         public static bool CenterText { get; private set; }
         public static bool Textured { get; private set; }
         public static bool ShowLockLevel { get; private set; }
@@ -184,6 +185,7 @@ namespace Game.Mods.WorldTooltips.Scripts
             HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
             ShowHiddenDoorsTooltip = modSettings.GetBool("GeneralSettings", "ShowHiddenDoorsTooltip");
             OnlyInInfoMode = modSettings.GetBool("GeneralSettings", "OnlyInInfoMode");
+            NamesOfRestrainedFoes = modSettings.GetBool("GeneralSettings", "NamesOfRestrainedFoes");
             ShowLockLevel = modSettings.GetBool("Experimental", "ShowLockLevel");
             CenterText = modSettings.GetBool("Experimental", "CenterText");
             FontIndex = modSettings.GetInt("Experimental", "Font");
@@ -322,27 +324,27 @@ namespace Game.Mods.WorldTooltips.Scripts
             Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
 
             RaycastHit hit;
-            var hitSomething = Physics.Raycast(ray, out hit, rayDistance, playerLayerMask);
 
-            var isSame = hit.transform == prevHit;
-
-            if (!hitSomething)
+            // Did we hit something?
+            if (!Physics.Raycast(ray, out hit, rayDistance, playerLayerMask))
             {
                 return null;
             }
 
-            prevHit = hit.transform;
+            var isSame = hit.transform == prevHit;
 
-            if (isSame)
+            // The same object, with known text, the same distance.
+            if (isSame && !string.IsNullOrEmpty(prevText) && Math.Abs(hit.distance - prevDistance) > 0.1f)
             {
-                return hit.distance <= prevDistance ? prevText : null;
+                return prevText;
             }
 
-            object comp;
-            string result = null;
+            // Other object, or no text, or other distance.
+            prevHit = hit.transform;
+
             var stop = false;
 
-            result = EnumerateCustomHoverText(hit);
+            var result = EnumerateCustomHoverText(hit);
 
             // Easy base cases
             if (string.IsNullOrEmpty(result))
@@ -359,7 +361,8 @@ namespace Game.Mods.WorldTooltips.Scripts
             }
             else
             {
-                // Objects with "Mobile NPC" activation distances
+                object comp;
+                // Objects with "Mobile NPC" and "Static NPC" activation distances
                 if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.MobileNPCActivationDistance)
                 {
                     if (CheckComponent<MobilePersonNPC>(hit, out comp))
@@ -367,33 +370,46 @@ namespace Game.Mods.WorldTooltips.Scripts
                         result = ((MobilePersonNPC)comp).NameNPC;
                         prevDistance = PlayerActivate.MobileNPCActivationDistance;
                     }
-                    else if (CheckComponent<DaggerfallEntityBehaviour>(hit, out comp))
+
+                    if (NamesOfRestrainedFoes && string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
                     {
-                        DaggerfallEntityBehaviour behaviour = (DaggerfallEntityBehaviour)comp;
-
-                        EnemyMotor enemyMotor = behaviour.transform.GetComponent<EnemyMotor>();
-                        EnemyEntity enemyEntity = behaviour.Entity as EnemyEntity;
-
-                        if (!enemyMotor || !enemyMotor.IsHostile)
+                        if (((QuestResourceBehaviour)comp).TargetResource is Foe foe)
                         {
-                            result = enemyEntity == null
-                                ? behaviour.Entity.Name
-                                : TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID);
+                            if (foe.IsRestrained)
+                            {
+                                foe.ExpandMacro(MacroTypes.DetailsMacro, out var str);
+                                result = str;
 
-                            prevDistance = PlayerActivate.MobileNPCActivationDistance;
+                                prevDistance = PlayerActivate.MobileNPCActivationDistance;
+                            }
                         }
                     }
-                    else if (CheckComponent<DaggerfallBulletinBoard>(hit, out comp))
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallEntityBehaviour>(hit, out comp))
+                    {
+                        var behaviour = (DaggerfallEntityBehaviour)comp;
+
+                        var enemyMotor = behaviour.transform.GetComponent<EnemyMotor>();
+                        var enemyEntity = (EnemyEntity)behaviour.Entity;
+
+                        if (enemyEntity != null)
+                        {
+                            if (enemyMotor && !enemyMotor.IsHostile)
+                            {
+                                result = TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID);
+
+                                prevDistance = PlayerActivate.MobileNPCActivationDistance;
+                            }
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBulletinBoard>(hit, out comp))
                     {
                         result = Localize("BulletinBoard");
                         prevDistance = PlayerActivate.MobileNPCActivationDistance;
                     }
-                }
 
-                // Objects with "Static NPC" activation distances
-                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.StaticNPCActivationDistance)
-                {
-                    if (CheckComponent<StaticNPC>(hit, out comp))
+                    if (string.IsNullOrEmpty(result) && CheckComponent<StaticNPC>(hit, out comp))
                     {
                         var npc = (StaticNPC)comp;
                         if (CheckComponent<DaggerfallBillboard>(hit, out comp))
@@ -467,124 +483,30 @@ namespace Game.Mods.WorldTooltips.Scripts
                     }
                 }
 
-                // Objects with "Default" activation distances
-                if (hit.distance <= PlayerActivate.DefaultActivationDistance)
+                // Checking for loot
+                // Corpses have a different activation distance than other containers/loot
+                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.CorpseActivationDistance)
                 {
-                    if (CheckComponent<DaggerfallAction>(hit, out comp))
+                    if (CheckComponent<DaggerfallLoot>(hit, out comp))
                     {
-                        var da = (DaggerfallAction)comp;
-                        if (da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct
-                            || da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct6
-                            || da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger)
+                        var loot = (DaggerfallLoot)comp;
+
+                        if (loot.ContainerType == LootContainerTypes.CorpseMarker)
                         {
-                            var multiTriggerOkay = false;
-                            var mesh = hit.transform.GetComponent<MeshFilter>();
-                            if (mesh)
-                            {
-                                int record;
-                                if (TryExtractNumber(mesh.name, out record))
-                                {
-                                    switch (record)
-                                    {
-                                        case 1:
-                                            result = Localize("Wheel");
-                                            multiTriggerOkay = true;
-                                            break;
-                                        case 61027:
-                                        case 61028:
-                                            result = Localize("Lever");
-                                            multiTriggerOkay = true;
-                                            break;
-                                        case 74143:
-                                            result = Localize("Mantella");
-                                            break;
-                                        case 62323:
-                                        // Secret teleport
-                                        case 72019:
-                                        case 74215:
-                                        case 74225:
-                                            multiTriggerOkay = true;
-                                            break;
-                                    }
-                                }
-                            }
-
-                            if (da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger && !multiTriggerOkay)
-                            {
-                                result = null;
-                            }
-                            else
-                            {
-                                if (!HideInteractTooltip && string.IsNullOrEmpty(result))
-                                {
-                                    result = Localize("Interact");
-                                }
-
-                                prevDistance = PlayerActivate.DefaultActivationDistance;
-                            }
-                        }
-                    }
-                    else if (CheckComponent<DaggerfallLadder>(hit, out comp))
-                    {
-                        result = Localize("Ladder");
-                        prevDistance = PlayerActivate.DefaultActivationDistance;
-                    }
-                    else if (CheckComponent<DaggerfallBookshelf>(hit, out comp))
-                    {
-                        result = Localize("Bookshelf");
-                        prevDistance = PlayerActivate.DefaultActivationDistance;
-                    }
-                    else if (CheckComponent<QuestResourceBehaviour>(hit, out comp))
-                    {
-                        var qrb = (QuestResourceBehaviour)comp;
-
-                        if (qrb.TargetResource != null)
-                        {
-                            if (qrb.TargetResource is Item)
-                            {
-                                if (CheckComponent<DaggerfallBillboard>(hit, out comp))
-                                {
-                                    var bb = (DaggerfallBillboard)comp;
-                                    var archive = bb.Summary.Archive;
-                                    var index = bb.Summary.Record;
-
-                                    if (archive == 211)
-                                    {
-                                        switch (index)
-                                        {
-                                            case 54:
-                                                result = Localize("TotemOfSeptim");
-                                                break;
-                                        }
-                                    }
-                                }
-
-                                if (string.IsNullOrEmpty(result))
-                                {
-                                    result = DaggerfallUnity.Instance.ItemHelper.ResolveItemLongName(((Item)qrb.TargetResource).DaggerfallUnityItem, false);
-                                }
-
-                                prevDistance = PlayerActivate.DefaultActivationDistance;
-                            }
+                            result = string.Format(Localize("DeadEnemy"), loot.entityName);
+                            prevDistance = PlayerActivate.CorpseActivationDistance;
                         }
                     }
                 }
 
-                // Checking for loot
-                // Corpses have a different activation distance than other containers/loot
-                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallLoot>(hit, out comp))
+                // DefaultActivationDistance == DoorActivationDistance == TreasureActivationDistance == PickpocketDistance
+                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.DefaultActivationDistance)
                 {
-                    var loot = (DaggerfallLoot)comp;
+                    // Checking for normal loot
+                    if (CheckComponent<DaggerfallLoot>(hit, out comp))
+                    {
+                        var loot = (DaggerfallLoot)comp;
 
-                    // If a corpse, and within the corpse activation distance..
-                    if (loot.ContainerType == LootContainerTypes.CorpseMarker && hit.distance <= PlayerActivate.CorpseActivationDistance)
-                    {
-                        result = string.Format(Localize("DeadEnemy"), loot.entityName);
-                        prevDistance = PlayerActivate.CorpseActivationDistance;
-                    }
-                    else if (hit.distance <= PlayerActivate.TreasureActivationDistance)
-                    {
-                        prevDistance = PlayerActivate.TreasureActivationDistance;
                         switch (loot.ContainerType)
                         {
                             case LootContainerTypes.DroppedLoot:
@@ -688,13 +610,110 @@ namespace Game.Mods.WorldTooltips.Scripts
 
                                 break;
                         }
-                    }
-                }
 
-                // Objects with the "Door" activation distances
-                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.DoorActivationDistance)
-                {
-                    if (CheckComponent<DaggerfallActionDoor>(hit, out comp))
+                        prevDistance = PlayerActivate.TreasureActivationDistance;
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallAction>(hit, out comp))
+                    {
+                        var da = (DaggerfallAction)comp;
+                        if (da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct ||
+                            da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct6 ||
+                            da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger)
+                        {
+                            var multiTriggerOkay = false;
+                            var mesh = hit.transform.GetComponent<MeshFilter>();
+                            if (mesh)
+                            {
+                                int record;
+                                if (TryExtractNumber(mesh.name, out record))
+                                {
+                                    switch (record)
+                                    {
+                                        case 1:
+                                            result = Localize("Wheel");
+                                            multiTriggerOkay = true;
+                                            break;
+                                        case 61027:
+                                        case 61028:
+                                            result = Localize("Lever");
+                                            multiTriggerOkay = true;
+                                            break;
+                                        case 74143:
+                                            result = Localize("Mantella");
+                                            break;
+                                        case 62323:
+                                        // Secret teleport
+                                        case 72019:
+                                        case 74215:
+                                        case 74225:
+                                            multiTriggerOkay = true;
+                                            break;
+                                    }
+                                }
+                            }
+
+                            if (da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger && !multiTriggerOkay)
+                            {
+                                result = null;
+                            }
+                            else
+                            {
+                                if (!HideInteractTooltip && string.IsNullOrEmpty(result))
+                                {
+                                    result = Localize("Interact");
+                                }
+
+                                prevDistance = PlayerActivate.DefaultActivationDistance;
+                            }
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallLadder>(hit, out comp))
+                    {
+                        result = Localize("Ladder");
+                        prevDistance = PlayerActivate.DefaultActivationDistance;
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBookshelf>(hit, out comp))
+                    {
+                        result = Localize("Bookshelf");
+                        prevDistance = PlayerActivate.DefaultActivationDistance;
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
+                    {
+                        var qrb = (QuestResourceBehaviour)comp;
+
+                        if (qrb.TargetResource is Item)
+                        {
+                            if (CheckComponent<DaggerfallBillboard>(hit, out comp))
+                            {
+                                var bb = (DaggerfallBillboard)comp;
+                                var archive = bb.Summary.Archive;
+                                var index = bb.Summary.Record;
+
+                                if (archive == 211)
+                                {
+                                    switch (index)
+                                    {
+                                        case 54:
+                                            result = Localize("TotemOfSeptim");
+                                            break;
+                                    }
+                                }
+                            }
+
+                            if (string.IsNullOrEmpty(result))
+                            {
+                                result = DaggerfallUnity.Instance.ItemHelper.ResolveItemLongName(((Item)qrb.TargetResource).DaggerfallUnityItem, false);
+                            }
+
+                            prevDistance = PlayerActivate.DefaultActivationDistance;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallActionDoor>(hit, out comp))
                     {
                         var door = (DaggerfallActionDoor)comp;
                         result = Localize("Door");
@@ -741,22 +760,22 @@ namespace Game.Mods.WorldTooltips.Scripts
 
                         prevDistance = PlayerActivate.DoorActivationDistance;
                     }
-                }
 
-                // "else", look for static doors on this object. If there are any, return the specific location
-                // Is computationally expensive and should be saved for last
-                if (string.IsNullOrEmpty(result))
-                {
-                    Transform doorOwner;
-                    DaggerfallStaticDoors doors = GetDoors(hit.transform, out doorOwner);
-                    if (doors)
+                    // "else", look for static doors on this object. If there are any, return the specific location
+                    // Is computationally expensive and should be saved for last
+                    if (string.IsNullOrEmpty(result))
                     {
-                        result = GetStaticDoorText(doors, hit, doorOwner);
-                        prevDistance = PlayerActivate.DoorActivationDistance;
-                    }
-                    else
-                    {
-                        prevHit = null;
+                        Transform doorOwner;
+                        DaggerfallStaticDoors doors = GetDoors(hit.transform, out doorOwner);
+                        if (doors)
+                        {
+                            result = GetStaticDoorText(doors, hit, doorOwner);
+                            prevDistance = PlayerActivate.DoorActivationDistance;
+                        }
+                        else
+                        {
+                            prevHit = null;
+                        }
                     }
                 }
             }

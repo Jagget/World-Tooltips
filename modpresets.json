@@ -3,12 +3,13 @@
         "Title": "Default",
         "Author": "Jagget",
         "Description": "Default settings",
-        "SettingsVersion": "1.7",
+        "SettingsVersion": "1.8",
         "Values": {
             "GeneralSettings": {
                 "HideDefaultInteractTooltip": "False",
                 "ShowHiddenDoorsTooltip": "True",
-                "OnlyInInfoMode": "False"
+                "OnlyInInfoMode": "False",
+                "NamesOfRestrainedFoes": "True"
             },
             "Experimental": {
                 "CenterText": "True",

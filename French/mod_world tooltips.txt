@@ -11,6 +11,8 @@ Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "MontrerInfobulleSurPortes
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Afficher une infobulle sur les portes secrètes et les portes cachées de type mur."
 Settings.GeneralSettings.OnlyInInfoMode.Name, "Seulement en mode Info"
 Settings.GeneralSettings.OnlyInInfoMode.Description, "On ne montre l'infobulle que quand l’interaction est en mode Info."
+Settings.GeneralSettings.NamesOfRestrainedFoes.Name, "Nom des ennemis pacifiques"
+Settings.GeneralSettings.NamesOfRestrainedFoes.Description, "Montrer les noms des ennemis générés automatiquement durant les quêtes qui n'attaquent pas spontanément."
 Settings.Experimental.Name, "Expérimental"
 Settings.Experimental.Description, "À utiliser avec précaution !"
 Settings.Experimental.CenterText.Name, "CentrerTexte"

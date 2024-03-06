@@ -11,6 +11,8 @@ Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "Тултип на сек�
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Показывать подсказку на на секретных дверях, обычно в подземельях, которые выглядят как стены."
 Settings.GeneralSettings.OnlyInInfoMode.Name, "Только в режиме Информации"
 Settings.GeneralSettings.OnlyInInfoMode.Description, "Показывать подсказку только если режим взаимодействия - Информация."
+Settings.GeneralSettings.NamesOfRestrainedFoes.Name, "Имена мирных врагов"
+Settings.GeneralSettings.NamesOfRestrainedFoes.Description, "Показывать имена квестовых врагов, если они не агрессивны (не атакуют)."
 Settings.Experimental.Name, "Экспериментальные"
 Settings.Experimental.Description, "Меняйте осторожно!"
 Settings.Experimental.CenterText.Name, "Центрировать"

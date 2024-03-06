@@ -9,9 +9,9 @@ Cupboard,Wandschrank
 DeadEnemy,{0} [tot]
 Door,Tür
 Dresser,Kommode
-GoTo,Gehe in\r{0}
-GoToCityWalls,Gehe in die Stadtmauer\rvon {0}
-GoToRegion,Gehe nach\r{0} Region
+GoTo,{0}
+GoToCityWalls,Stadtmauer\rvon {0}
+GoToRegion,Zur Region\r{0}
 Interact,<Interaktion>
 Ladder,Leiter
 Lever,Hebel

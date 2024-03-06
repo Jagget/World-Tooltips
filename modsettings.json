@@ -1,5 +1,5 @@
 {
-    "Version": "1.7",
+    "Version": "1.8",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -24,6 +24,13 @@
                     "Value": false,
                     "Name": "OnlyInInfoMode",
                     "Description": "Only show tooltip, when the interaction is info mode",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Value": true,
+                    "Name": "NamesOfRestrainedFoes",
+                    "Description": "Show the names of quest generated enemies that are restrained (peaceful, non-combatant)",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }
