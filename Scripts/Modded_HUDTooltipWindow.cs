@@ -390,9 +390,8 @@ namespace Game.Mods.WorldTooltips.Scripts
                         var behaviour = (DaggerfallEntityBehaviour)comp;
 
                         var enemyMotor = behaviour.transform.GetComponent<EnemyMotor>();
-                        var enemyEntity = (EnemyEntity)behaviour.Entity;
 
-                        if (enemyEntity != null)
+                        if (behaviour.Entity is EnemyEntity enemyEntity)
                         {
                             if (enemyMotor && !enemyMotor.IsHostile)
                             {
