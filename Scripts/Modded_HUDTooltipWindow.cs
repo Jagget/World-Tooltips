@@ -395,7 +395,11 @@ namespace Game.Mods.WorldTooltips.Scripts
                         {
                             if (enemyMotor && !enemyMotor.IsHostile)
                             {
-                                result = TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID);
+                                result = enemyEntity.Name == enemyEntity.Career.Name
+                                    // Wasn't renamed
+                                    ? TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID)
+                                    // Was renamed
+                                    : enemyEntity.Name;
 
                                 prevDistance = PlayerActivate.MobileNPCActivationDistance;
                             }
