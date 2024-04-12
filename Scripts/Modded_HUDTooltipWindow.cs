@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DaggerfallConnect;
+using DaggerfallConnect.Arena2;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Entity;
@@ -415,64 +416,26 @@ namespace Game.Mods.WorldTooltips.Scripts
                     if (string.IsNullOrEmpty(result) && CheckComponent<StaticNPC>(hit, out comp))
                     {
                         var npc = (StaticNPC)comp;
-                        if (CheckComponent<DaggerfallBillboard>(hit, out comp))
-                        {
-                            var bb = (DaggerfallBillboard)comp;
-                            var archive = bb.Summary.Archive;
-                            var index = bb.Summary.Record;
 
-                            if (archive == 175)
+                        var factionID = 0;
+                        try
+                        {
+                            factionID = npc.Data.factionID;
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+
+                        if (factionID > 0)
+                        {
+                            if (GameManager.Instance.PlayerEntity.FactionData.GetFactionData(factionID, out var factionData))
                             {
-                                switch (index)
+                                // This must be an individual NPC or Daedra
+                                if (factionData.type == (int)FactionFile.FactionTypes.Individual ||
+                                    factionData.type == (int)FactionFile.FactionTypes.Daedra)
                                 {
-                                    case 0:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Azura");
-                                        break;
-                                    case 1:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Boethiah");
-                                        break;
-                                    case 2:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Clavicus Vile");
-                                        break;
-                                    case 3:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Hircine");
-                                        break;
-                                    case 4:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Hermaeus Mora");
-                                        break;
-                                    case 5:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Malacath");
-                                        break;
-                                    case 6:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Mehrunes Dagon");
-                                        break;
-                                    case 7:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Mephala");
-                                        break;
-                                    case 8:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Meridia");
-                                        break;
-                                    case 9:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Molag Bal");
-                                        break;
-                                    case 10:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Namira");
-                                        break;
-                                    case 11:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Nocturnal");
-                                        break;
-                                    case 12:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Peryite");
-                                        break;
-                                    case 13:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Sanguine");
-                                        break;
-                                    case 14:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Sheogorath");
-                                        break;
-                                    case 15:
-                                        result = TextManager.Instance.GetLocalizedFactionName(index, "Vaermina");
-                                        break;
+                                    result = TextManager.Instance.GetLocalizedFactionName(factionID, npc.DisplayName);
                                 }
                             }
                         }
