@@ -1,8 +1,10 @@
 ﻿*.manifest
 *.manifest.meta
+Out/Android/Android
 Out/StandaloneLinux64/StandaloneLinux64
 Out/StandaloneOSX/StandaloneOSX
 Out/StandaloneWindows/StandaloneWindows
+Out/Android/Android.meta
 Out/StandaloneOSX/StandaloneOSX.meta
 Out/StandaloneWindows/StandaloneWindows.meta
 Out/StandaloneLinux64/StandaloneLinux64.meta
