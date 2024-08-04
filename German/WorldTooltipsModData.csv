@@ -16,6 +16,7 @@ Interact,<Interaktion>
 Ladder,Leiter
 Lever,Hebel
 LockLevel,{0}\rSchlossstufe: {1}
+LockLevelUnlockChance,{0}\rÖffnungswahrscheinlichkeit: {1}%
 LockLevelHidden,{0}\r[verschlossen]
 LootPile,Beutehaufen
 Mantella,Das Mantella

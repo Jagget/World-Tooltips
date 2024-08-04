@@ -6,6 +6,7 @@ using DaggerfallConnect.Arena2;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Entity;
+using DaggerfallWorkshop.Game.Formulas;
 using DaggerfallWorkshop.Game.Questing;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.Utility;
@@ -56,6 +57,8 @@ namespace Game.Mods.WorldTooltips.Scripts
         public static bool CenterText { get; private set; }
         public static bool Textured { get; private set; }
         public static bool ShowLockLevel { get; private set; }
+        public static bool ShowLockStatus { get; private set; }
+        public static bool ShowLockOpenChance { get; private set; }
         public static int FontIndex { get; private set; }
         public static float FontScale { get; private set; }
         public static Color32 BgColor { get; private set; }
@@ -187,7 +190,9 @@ namespace Game.Mods.WorldTooltips.Scripts
             ShowHiddenDoorsTooltip = modSettings.GetBool("GeneralSettings", "ShowHiddenDoorsTooltip");
             OnlyInInfoMode = modSettings.GetBool("GeneralSettings", "OnlyInInfoMode");
             NamesOfRestrainedFoes = modSettings.GetBool("GeneralSettings", "NamesOfRestrainedFoes");
-            ShowLockLevel = modSettings.GetBool("Experimental", "ShowLockLevel");
+            ShowLockLevel = modSettings.GetBool("Lockinfo", "ShowLockLevel");
+            ShowLockStatus = modSettings.GetBool("Lockinfo", "ShowLockStatus");
+            ShowLockOpenChance = modSettings.GetBool("Lockinfo", "ShowLockOpenChance");
             CenterText = modSettings.GetBool("Experimental", "CenterText");
             FontIndex = modSettings.GetInt("Experimental", "Font");
             Textured = modSettings.GetBool("Experimental", "Textured");
@@ -682,9 +687,8 @@ namespace Game.Mods.WorldTooltips.Scripts
                     if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallActionDoor>(hit, out comp))
                     {
                         var door = (DaggerfallActionDoor)comp;
-                        result = Localize("Door");
-                        int record;
-                        if (TryExtractNumber(door.name, out record) && !ShowHiddenDoorsTooltip)
+
+                        if (TryExtractNumber(door.name, out int record) && !ShowHiddenDoorsTooltip)
                         {
                             switch (record)
                             {
@@ -717,11 +721,21 @@ namespace Game.Mods.WorldTooltips.Scripts
                             }
                         }
 
-                        if (door.IsLocked)
+                        result = Localize("Door");
+
+                        if (door.IsLocked && ShowLockStatus)
                         {
                             result = ShowLockLevel
                                 ? string.Format(Localize("LockLevel"), result, door.CurrentLockValue)
                                 : string.Format(Localize("LockLevelHidden"), result);
+
+                            if (ShowLockOpenChance)
+                            {
+                                var player = GameManager.Instance.PlayerEntity;
+                                var chance = FormulaHelper.CalculateInteriorLockpickingChance(player.Level, door.CurrentLockValue, player.Skills.GetLiveSkillValue(DFCareer.Skills.Lockpicking));
+
+                                result = string.Format(Localize("LockLevelUnlockChance"), result, chance);
+                            }
                         }
 
                         prevDistance = PlayerActivate.DoorActivationDistance;
@@ -802,11 +816,19 @@ namespace Game.Mods.WorldTooltips.Scripts
                             ? string.Format(Localize("GoToCityWalls"), playerGPS.CurrentLocalizedLocationName)
                             : string.Format(Localize("GoTo"), db.displayName);
 
-                        if (buildingLocked)
+                        if (buildingLocked && ShowLockStatus)
                         {
                             doorText = ShowLockLevel
                                 ? string.Format(Localize("LockLevel"), doorText, buildingLockValue)
                                 : string.Format(Localize("LockLevelHidden"), doorText);
+
+                            if (ShowLockOpenChance)
+                            {
+                                var player = GameManager.Instance.PlayerEntity;
+                                var chance = FormulaHelper.CalculateInteriorLockpickingChance(player.Level, buildingLockValue, player.Skills.GetLiveSkillValue(DFCareer.Skills.Lockpicking));
+
+                                doorText = string.Format(Localize("LockLevelUnlockChance"), doorText, chance);
+                            }
                         }
 
                         if (buildingLocked

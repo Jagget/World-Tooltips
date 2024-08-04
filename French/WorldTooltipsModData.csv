@@ -16,6 +16,7 @@ Interact,<Interagir>
 Ladder,Échelle
 Lever,Levier
 LockLevel,{0}\rNiveau de serrure: {1}
+LockLevelUnlockChance,"{0}\rProbabilité de crochetage: {1} %"
 LockLevelHidden,{0}\rVerrouillé
 LootPile,Tas de butin
 Mantella,Le Mantella

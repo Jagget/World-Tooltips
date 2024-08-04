@@ -16,6 +16,7 @@ Interact,<Активировать>
 Ladder,Лестница
 Lever,Рычаг
 LockLevel,{0}\rУровень замка: {1}
+LockLevelUnlockChance,"{0}\Шанс вскрыть: {1}%"
 LockLevelHidden,{0}\rЗакрыто
 LootPile,Куча лута
 Mantella,Мантелла

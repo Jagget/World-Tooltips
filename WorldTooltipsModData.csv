@@ -16,6 +16,7 @@ Interact,<Interact>
 Ladder,Ladder
 Lever,Lever
 LockLevel,{0}\rLock Level: {1}
+LockLevelUnlockChance,"{0}\rChance to open: {1}%"
 LockLevelHidden,{0}\rLocked
 LootPile,Loot Pile
 Mantella,The Mantella

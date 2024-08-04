@@ -3,7 +3,7 @@
         "Title": "Default",
         "Author": "Jagget",
         "Description": "Default settings",
-        "SettingsVersion": "1.8",
+        "SettingsVersion": "1.9",
         "Values": {
             "GeneralSettings": {
                 "HideDefaultInteractTooltip": "False",
@@ -17,8 +17,12 @@
                 "FontScale": "1",
                 "TextColor": "E6E6C8FF",
                 "BackgroundColor": "404040D2",
-                "Textured": "True",
-                "ShowLockLevel": "False"
+                "Textured": "True"
+            },
+            "Lockinfo": {
+                "ShowLockStatus": "True",
+                "ShowLockLevel": "False",
+                "ShowLockOpenChance": "False"
             }
         },
         "$version": "v1"

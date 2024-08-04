@@ -1,5 +1,5 @@
 {
-    "Version": "1.8",
+    "Version": "1.9",
     "Sections": [
         {
             "Name": "GeneralSettings",
@@ -31,6 +31,35 @@
                     "Value": true,
                     "Name": "NamesOfRestrainedFoes",
                     "Description": "Show the names of quest generated enemies that are restrained (peaceful, non-combatant)",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                }
+            ],
+            "$version": "v1"
+        },
+        {
+            "Name": "Lockinfo",
+            "Description": "Show the locked door status",
+            "IsAdvanced": false,
+            "Keys": [
+                {
+                    "Value": true,
+                    "Name": "ShowLockStatus",
+                    "Description": "If the door is locked, show that it's locked",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Value": false,
+                    "Name": "ShowLockLevel",
+                    "Description": "If the door is locked, show the lock level",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
+                },
+                {
+                    "Value": false,
+                    "Name": "ShowLockOpenChance",
+                    "Description": "If the door is locked, show the chance of lockpicking",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }
@@ -95,13 +124,6 @@
                     "Value": true,
                     "Name": "Textured",
                     "Description": "Use textured background, otherwise use color (requires restart)",
-                    "$version": "v1",
-                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
-                },
-                {
-                    "Value": false,
-                    "Name": "ShowLockLevel",
-                    "Description": "If the door is locked, show the lock level",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.ToggleKey"
                 }

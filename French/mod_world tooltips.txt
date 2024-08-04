@@ -9,10 +9,14 @@ Settings.GeneralSettings.HideDefaultInteractTooltip.Name, "CacherInfobullesParD�
 Settings.GeneralSettings.HideDefaultInteractTooltip.Description, "Pas d'indice par défaut pour les objets interactifs qui devraient être secrets, en particulier pour les énigmes de la quête principale."
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Name, "MontrerInfobulleSurPortesCachées"
 Settings.GeneralSettings.ShowHiddenDoorsTooltip.Description, "Afficher une infobulle sur les portes secrètes et les portes cachées de type mur."
-Settings.GeneralSettings.OnlyInInfoMode.Name, "Seulement en mode Info"
-Settings.GeneralSettings.OnlyInInfoMode.Description, "On ne montre l'infobulle que quand l’interaction est en mode Info."
-Settings.GeneralSettings.NamesOfRestrainedFoes.Name, "Nom des ennemis pacifiques"
-Settings.GeneralSettings.NamesOfRestrainedFoes.Description, "Montrer les noms des ennemis générés automatiquement durant les quêtes qui n'attaquent pas spontanément."
+Settings.Lockinfo.Name, "InfosVerrouillage"
+Settings.Lockinfo.Description, "Montre le statut de verrouillage de la porte"
+Settings.Lockinfo.ShowLockStatus.Name, "MontrerStatutDeVerrouillage"
+Settings.Lockinfo.ShowLockStatus.Description, "Si la porte est verrouillée, montrer qu'elle l'est"
+Settings.Lockinfo.ShowLockLevel.Name, "MontrerNiveauDeVerrouillage"
+Settings.Lockinfo.ShowLockLevel.Description, "Si la porte est verrouillée, afficher le niveau de verrouillage"
+Settings.Lockinfo.ShowLockOpenChance.Name, "MontrerChanceOuverture"
+Settings.Lockinfo.ShowLockOpenChance.Description, "Si la porte est verrouillée, afficher la probabilité de crochetage"
 Settings.Experimental.Name, "Expérimental"
 Settings.Experimental.Description, "À utiliser avec précaution !"
 Settings.Experimental.CenterText.Name, "CentrerTexte"
@@ -33,3 +37,6 @@ Settings.Experimental.ShowLockLevel.Description, "Si la porte est verrouillée, 
 - Presets
 Presets.Default.Title, "Défaut"
 Presets.Default.Description, "Paramètres par défaut"
+
+- Additional strings which can be accessed from Mod.Localize().
+- Default values can be provided with a table named textdatabase.txt inside the mod bundle.
