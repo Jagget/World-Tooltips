@@ -1127,9 +1127,9 @@ namespace Game.Mods.WorldTooltips.Scripts
 
             public bool EnableBorder { get; set; }
             Border<Vector2Int> virtualSizes;
-
-
-            const int defaultMarginSize = 2;
+            
+            private const int _defaultMarginSize = 2;
+            private const int _bottomMarginSize = 1;
 
             private int currentCursorHeight = -1;
             private int currentSystemHeight;
@@ -1152,14 +1152,9 @@ namespace Game.Mods.WorldTooltips.Scripts
             public DaggerfallFont Font { get; set; }
 
             /// <summary>
-            /// Sets delay time in seconds before tooltip is displayed.
-            /// </summary>
-            public float ToolTipDelay { get; set; } = 0;
-
-            /// <summary>
             /// Gets or sets tooltip draw position relative to mouse.
             /// </summary>
-            public Vector2 MouseOffset { get; set; } = new Vector2(0, 4);
+            public Vector2 MouseOffset { get; set; } = Vector2.zero;
 
             #endregion
 
@@ -1187,10 +1182,10 @@ namespace Game.Mods.WorldTooltips.Scripts
                     BackgroundColor = BgColor;
                 }
 
-                SetMargins(Margins.Top, defaultMarginSize);
-                SetMargins(Margins.Bottom, defaultMarginSize * 2);
-                SetMargins(Margins.Left, defaultMarginSize * 2);
-                SetMargins(Margins.Right, defaultMarginSize * 2);
+                SetMargins(Margins.Top, _defaultMarginSize);
+                SetMargins(Margins.Bottom, _bottomMarginSize * 3);
+                SetMargins(Margins.Left, _defaultMarginSize * 2);
+                SetMargins(Margins.Right, _defaultMarginSize * 2);
             }
 
             #endregion
@@ -1254,7 +1249,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                     Right = new Vector2Int(right.width, right.height),
                     BottomLeft = new Vector2Int(bottomLeft.width, bottomLeft.height),
                     Bottom = new Vector2Int(bottom.width, bottom.height),
-                    BottomRight = new Vector2Int(bottomRight.width, bottomRight.height)
+                    BottomRight = new Vector2Int(bottomRight.width, bottomRight.height),
                 };
             }
 
@@ -1276,7 +1271,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 currentSystemHeight = Display.main.systemHeight;
                 currentRenderingHeight = Display.main.renderingHeight;
                 currentFullScreen = DaggerfallUnity.Settings.Fullscreen;
-                MouseOffset = new Vector2(0, 0); //currentCursorHeight * 200f / (currentFullScreen ? currentSystemHeight : currentRenderingHeight));
+                MouseOffset = Vector2.zero;
             }
 
             /// <summary>
@@ -1329,13 +1324,13 @@ namespace Game.Mods.WorldTooltips.Scripts
                     HUDLarge largeHUD = DaggerfallUI.Instance.DaggerfallHUD.LargeHUD;
                     // Set tooltip position
                     // Don't know why I need to subtract by 2 pixels
-                    Position = new Vector2(Screen.width / 2, (Screen.height - largeHUD.Rectangle.height) / 2 - 2);
+                    Position = new Vector2(Screen.width / 2f, (Screen.height - largeHUD.Rectangle.height) / 2f - 2);
                 }
                 else
                 {
                     // Set tooltip position without large HUD
                     // Don't know why I need to add one pixel
-                    Position = new Vector2(Screen.width / 2, Screen.height / 2 + 1);
+                    Position = new Vector2(Screen.width / 2f, Screen.height / 2f + 1);
                 }
 
                 // Check if mouse position is in parent's rectangle (to prevent tooltips out of panel's rectangle to be displayed)
@@ -1421,7 +1416,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 // Set text we just processed
                 lastText = text;
 
-                // Find widest row
+                // Find the widest row
                 widestRow = 0;
                 foreach (var textRow in textRows)
                 {
