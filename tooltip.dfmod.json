@@ -1,6 +1,6 @@
 {
     "ModTitle": "World Tooltips",
-    "ModVersion": "1.9.1",
+    "ModVersion": "1.10.0",
     "ModAuthor": "jefetienne",
     "ContactInfo": "https://forums.dfworkshop.net/memberlist.php?mode=viewprofile&u=2186",
     "DFUnity_Version": "1.1.1",
@@ -21,5 +21,12 @@
         "Assets/Game/Mods/WorldTooltips/modsettings.json",
         "Assets/Game/Mods/WorldTooltips/WorldTooltipsModData.csv",
         "Assets/Game/Mods/WorldTooltips/tooltip.dfmod.json"
+    ],
+    "Dependencies": [
+        {
+            "Name": "the-penwick-papers",
+            "IsOptional": true,
+            "IsPeer": false
+        }
     ]
 }

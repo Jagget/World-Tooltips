@@ -15,6 +15,7 @@ using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
 using DaggerfallWorkshop.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Game.Mods.WorldTooltips.Scripts
 {
@@ -28,7 +29,7 @@ namespace Game.Mods.WorldTooltips.Scripts
 
         #region Fields
 
-        static Dictionary<string, string> textDataBase;
+        private static Dictionary<string, string> textDataBase;
         public static string TooltipBgTopLeftName = "tooltip_bg_0-0.png";
         public static string TooltipBgTopName = "tooltip_bg_1-0.png";
         public static string TooltipBgTopRightName = "tooltip_bg_2-0.png";
@@ -47,6 +48,9 @@ namespace Game.Mods.WorldTooltips.Scripts
         public static Texture2D TooltipBgBottomLeft;
         public static Texture2D TooltipBgBottom;
         public static Texture2D TooltipBgBottomRight;
+
+        // Special cases
+        public static bool PenwickPeepIsOn;
 
         #region Settings
 
@@ -68,47 +72,47 @@ namespace Game.Mods.WorldTooltips.Scripts
 
         #region Mod API
 
-        const string REGISTER_CUSTOM_TOOLTIP = "RegisterCustomTooltip";
-        static Mod mod;
+        private const string REGISTER_CUSTOM_TOOLTIP = "RegisterCustomTooltip";
+        private static Mod mod;
 
         #endregion Mod API
 
         #region Raycasting
 
         //Use the farthest distance
-        const float rayDistance = PlayerActivate.StaticNPCActivationDistance;
+        private const float rayDistance = PlayerActivate.StaticNPCActivationDistance;
 
         private static Dictionary<float, List<Func<RaycastHit, string>>> customGetHoverText = new Dictionary<float, List<Func<RaycastHit, string>>>();
 
-        GameObject mainCamera;
-        int playerLayerMask;
+        private GameObject mainCamera;
+        private int playerLayerMask;
 
         //Caching
-        Transform prevHit;
-        string prevText;
+        private Transform prevHit;
+        private string prevText;
 
-        GameObject goDoor;
-        BoxCollider goDoorCollider;
-        StaticDoor prevDoor;
-        string prevDoorText;
-        float prevDistance;
-        Dictionary<int, DoorData> doorDataDict = new Dictionary<int, DoorData>();
+        private GameObject goDoor;
+        private BoxCollider goDoorCollider;
+        private StaticDoor prevDoor;
+        private string prevDoorText;
+        private float prevDistance;
+        private Dictionary<int, DoorData> doorDataDict = new Dictionary<int, DoorData>();
 
-        Transform prevDoorCheckTransform;
-        Transform prevDoorOwner;
-        DaggerfallStaticDoors prevStaticDoors;
+        private Transform prevDoorCheckTransform;
+        private Transform prevDoorOwner;
+        private DaggerfallStaticDoors prevStaticDoors;
 
         #endregion Raycasting
 
-        PlayerEnterExit playerEnterExit;
-        PlayerGPS playerGPS;
-        PlayerActivate playerActivate;
-        HUDTooltip tooltip;
+        private PlayerEnterExit playerEnterExit;
+        private PlayerGPS playerGPS;
+        private PlayerActivate playerActivate;
+        private HUDTooltip tooltip;
 
         #region Stolen methods/variables/properties
 
-        byte[] openHours;
-        byte[] closeHours;
+        private byte[] openHours;
+        private byte[] closeHours;
         private static readonly int _scissorRect = Shader.PropertyToID("_ScissorRect");
 
         #endregion Stolen methods/variables/properties
@@ -124,6 +128,14 @@ namespace Game.Mods.WorldTooltips.Scripts
             StateManager.OnStartNewGame += OnGameStarted;
             StartGameBehaviour.OnStartGame += OnNewGameStarted;
 
+            // "The Penwick Papers"
+            var thePenwickPapersInstance = ModManager.Instance.GetModFromGUID("c7a201b3-3b41-4c44-a5c6-f86c77cca630");
+            var penwickModEnabled = thePenwickPapersInstance != null && thePenwickPapersInstance.Enabled;
+            if (penwickModEnabled)
+            {
+                PenwickPeepIsOn = thePenwickPapersInstance.GetSettings().GetBool("Features", "DirtyTricks-Peep");
+            }
+
             LoadTextures();
             LoadTextData();
 
@@ -135,12 +147,12 @@ namespace Game.Mods.WorldTooltips.Scripts
             mod.LoadSettings();
         }
 
-        static void OnGameStarted(object sender, EventArgs e)
+        private static void OnGameStarted(object sender, EventArgs e)
         {
             mod.LoadSettings();
         }
 
-        static void OnNewGameStarted(object sender, EventArgs e)
+        private static void OnNewGameStarted(object sender, EventArgs e)
         {
             mod.LoadSettings();
         }
@@ -184,7 +196,7 @@ namespace Game.Mods.WorldTooltips.Scripts
 
         #region Public Methods
 
-        static void LoadSettings(ModSettings modSettings, ModSettingsChange change)
+        private static void LoadSettings(ModSettings modSettings, ModSettingsChange change)
         {
             HideInteractTooltip = modSettings.GetBool("GeneralSettings", "HideDefaultInteractTooltip");
             ShowHiddenDoorsTooltip = modSettings.GetBool("GeneralSettings", "ShowHiddenDoorsTooltip");
@@ -220,7 +232,7 @@ namespace Game.Mods.WorldTooltips.Scripts
             // which overlaps and prevents the player from going in. So we must delete the tooltip's goDoor beforehand if the player is activating
             if (InputManager.Instance.ActionComplete(InputManager.Actions.ActivateCenterObject))
             {
-                GameObject.Destroy(goDoor);
+                Object.Destroy(goDoor);
                 goDoor = null;
                 goDoorCollider = null;
             }
@@ -325,22 +337,45 @@ namespace Game.Mods.WorldTooltips.Scripts
             return result;
         }
 
+        private static bool WithinPeepRange(RaycastHit hit)
+        {
+            // Only in the Info Mode!
+            if (GameManager.Instance.PlayerActivate.CurrentMode != PlayerActivateModes.Info)
+            {
+                return false;
+            }
+            
+            //Determine XZ distance from player to object
+            Vector3 path = hit.point - GameManager.Instance.PlayerController.transform.position;
+            var distanceXZ = Vector3.ProjectOnPlane(path, Vector3.up).magnitude;
+            return distanceXZ <= 0.6f;
+        }
+
+        private static bool ThePeeperIsHere()
+        {
+            return GameObject.Find("Penwick Peeper");
+        }
+
         private string GetHoverText()
         {
             Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
 
-            RaycastHit hit;
-
             // Did we hit something?
-            if (!Physics.Raycast(ray, out hit, rayDistance, playerLayerMask))
+            if (!Physics.Raycast(ray, out var hit, rayDistance, playerLayerMask))
             {
                 return null;
             }
 
-            var isSame = hit.transform == prevHit;
+            var textIsSet = !string.IsNullOrEmpty(prevText);
+
+            var sameDistance = Math.Abs(hit.distance - prevDistance) > 0.1f;
+
+            var isSameObject = hit.transform == prevHit;
+
+            var withinPeepRange = PenwickPeepIsOn && WithinPeepRange(hit);
 
             // The same object, with known text, the same distance.
-            if (isSame && !string.IsNullOrEmpty(prevText) && Math.Abs(hit.distance - prevDistance) > 0.1f)
+            if (isSameObject && textIsSet && sameDistance && !withinPeepRange)
             {
                 return prevText;
             }
@@ -364,235 +399,145 @@ namespace Game.Mods.WorldTooltips.Scripts
             if (stop)
             {
                 prevHit = null;
+                prevText = result;
+                return result;
             }
-            else
+
+            object comp;
+            // Objects with "Mobile NPC" and "Static NPC" activation distances
+            if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.MobileNPCActivationDistance)
             {
-                object comp;
-                // Objects with "Mobile NPC" and "Static NPC" activation distances
-                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.MobileNPCActivationDistance)
+                if (CheckComponent<MobilePersonNPC>(hit, out comp))
                 {
-                    if (CheckComponent<MobilePersonNPC>(hit, out comp))
-                    {
-                        result = ((MobilePersonNPC)comp).NameNPC;
-                        prevDistance = PlayerActivate.MobileNPCActivationDistance;
-                    }
-
-                    if (NamesOfRestrainedFoes && string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
-                    {
-                        if (((QuestResourceBehaviour)comp).TargetResource is Foe foe)
-                        {
-                            if (foe.IsRestrained)
-                            {
-                                foe.ExpandMacro(MacroTypes.DetailsMacro, out var str);
-                                result = str;
-
-                                prevDistance = PlayerActivate.MobileNPCActivationDistance;
-                            }
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallEntityBehaviour>(hit, out comp))
-                    {
-                        var behaviour = (DaggerfallEntityBehaviour)comp;
-
-                        var enemyMotor = behaviour.transform.GetComponent<EnemyMotor>();
-
-                        if (behaviour.Entity is EnemyEntity enemyEntity)
-                        {
-                            if (enemyMotor && !enemyMotor.IsHostile)
-                            {
-                                result = enemyEntity.Name == enemyEntity.Career.Name
-                                    // Wasn't renamed
-                                    ? TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID)
-                                    // Was renamed
-                                    : enemyEntity.Name;
-
-                                prevDistance = PlayerActivate.MobileNPCActivationDistance;
-                            }
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBulletinBoard>(hit, out comp))
-                    {
-                        result = Localize("BulletinBoard");
-                        prevDistance = PlayerActivate.MobileNPCActivationDistance;
-                    }
-
-                    if (string.IsNullOrEmpty(result) && CheckComponent<StaticNPC>(hit, out comp))
-                    {
-                        var npc = (StaticNPC)comp;
-
-                        var factionID = 0;
-                        try
-                        {
-                            factionID = npc.Data.factionID;
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-
-                        if (factionID > 0)
-                        {
-                            if (GameManager.Instance.PlayerEntity.FactionData.GetFactionData(factionID, out var factionData))
-                            {
-                                // This must be an individual NPC or Daedra
-                                if (factionData.type == (int)FactionFile.FactionTypes.Individual ||
-                                    factionData.type == (int)FactionFile.FactionTypes.Daedra)
-                                {
-                                    result = TextManager.Instance.GetLocalizedFactionName(factionID, npc.DisplayName);
-                                }
-                            }
-                        }
-
-                        if (string.IsNullOrEmpty(result))
-                        {
-                            result = npc.DisplayName;
-                        }
-
-                        prevDistance = PlayerActivate.StaticNPCActivationDistance;
-                    }
+                    result = ((MobilePersonNPC)comp).NameNPC;
+                    prevDistance = PlayerActivate.MobileNPCActivationDistance;
                 }
 
-                // Checking for loot
-                // Corpses have a different activation distance than other containers/loot
-                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.CorpseActivationDistance)
+                if (NamesOfRestrainedFoes && string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
                 {
-                    if (CheckComponent<DaggerfallLoot>(hit, out comp))
+                    if (((QuestResourceBehaviour)comp).TargetResource is Foe foe)
                     {
-                        var loot = (DaggerfallLoot)comp;
-
-                        if (loot.ContainerType == LootContainerTypes.CorpseMarker)
+                        if (foe.IsRestrained)
                         {
-                            result = string.Format(Localize("DeadEnemy"), loot.entityName);
-                            prevDistance = PlayerActivate.CorpseActivationDistance;
+                            foe.ExpandMacro(MacroTypes.DetailsMacro, out var str);
+                            result = str;
+
+                            prevDistance = PlayerActivate.MobileNPCActivationDistance;
                         }
                     }
                 }
 
-                // DefaultActivationDistance == DoorActivationDistance == TreasureActivationDistance == PickpocketDistance
-                if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.DefaultActivationDistance)
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallEntityBehaviour>(hit, out comp))
                 {
-                    // Checking for normal loot
-                    if (CheckComponent<DaggerfallLoot>(hit, out comp))
+                    var behaviour = (DaggerfallEntityBehaviour)comp;
+
+                    var enemyMotor = behaviour.transform.GetComponent<EnemyMotor>();
+
+                    if (behaviour.Entity is EnemyEntity enemyEntity)
                     {
-                        var loot = (DaggerfallLoot)comp;
-
-                        switch (loot.ContainerType)
+                        if (enemyMotor && !enemyMotor.IsHostile)
                         {
-                            case LootContainerTypes.DroppedLoot:
-                            case LootContainerTypes.RandomTreasure:
-                                if (loot.Items.Count == 1)
-                                {
-                                    var item = loot.Items.GetItem(0);
-                                    result = item.LongName;
+                            result = enemyEntity.Name == enemyEntity.Career.Name
+                                // Wasn't renamed
+                                ? TextManager.Instance.GetLocalizedEnemyName(enemyEntity.MobileEnemy.ID)
+                                // Was renamed
+                                : enemyEntity.Name;
 
-                                    if (item.stackCount > 1)
-                                    {
-                                        result = string.Format(Localize("StackCount"), result, item.stackCount);
-                                    }
-                                }
-                                else
-                                {
-                                    result = Localize("LootPile");
-                                }
-
-                                break;
-                            case LootContainerTypes.ShopShelves:
-                                result = Localize("ShopShelf");
-                                break;
-                            case LootContainerTypes.HouseContainers:
-                                var mesh = hit.transform.GetComponent<MeshFilter>();
-                                if (mesh)
-                                {
-                                    int record;
-                                    if (TryExtractNumber(mesh.name, out record))
-                                    {
-                                        switch (record)
-                                        {
-                                            case 41003:
-                                            case 41004:
-                                            case 41800:
-                                            case 41801:
-                                                result = Localize("Wardrobe");
-                                                break;
-                                            case 41007:
-                                            case 41008:
-                                            case 41033:
-                                            case 41038:
-                                            case 41805:
-                                            case 41810:
-                                            case 41802:
-                                                result = Localize("Cabinets");
-                                                break;
-                                            case 41027:
-                                                result = Localize("Shelf");
-                                                break;
-                                            case 41034:
-                                            case 41050:
-                                            case 41803:
-                                            case 41806:
-                                                result = Localize("Dresser");
-                                                break;
-                                            case 41032:
-                                            case 41035:
-                                            case 41037:
-                                            case 41051:
-                                            case 41807:
-                                            case 41804:
-                                            case 41808:
-                                            case 41809:
-                                            case 41814:
-                                                result = Localize("Cupboard");
-                                                break;
-                                            case 41815:
-                                            case 41816:
-                                            case 41817:
-                                            case 41818:
-                                            case 41819:
-                                            case 41820:
-                                            case 41821:
-                                            case 41822:
-                                            case 41823:
-                                            case 41824:
-                                            case 41825:
-                                            case 41826:
-                                            case 41827:
-                                            case 41828:
-                                            case 41829:
-                                            case 41830:
-                                            case 41831:
-                                            case 41832:
-                                            case 41833:
-                                            case 41834:
-                                                result = Localize("Crate");
-                                                break;
-                                            case 41811:
-                                            case 41812:
-                                            case 41813:
-                                                result = Localize("Chest");
-                                                break;
-                                            default:
-                                                result = Localize("Interact");
-                                                break;
-                                        }
-                                    }
-                                }
-
-                                break;
+                            prevDistance = PlayerActivate.MobileNPCActivationDistance;
                         }
+                    }
+                }
 
-                        prevDistance = PlayerActivate.TreasureActivationDistance;
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBulletinBoard>(hit, out comp))
+                {
+                    result = Localize("BulletinBoard");
+                    prevDistance = PlayerActivate.MobileNPCActivationDistance;
+                }
+
+                if (string.IsNullOrEmpty(result) && CheckComponent<StaticNPC>(hit, out comp))
+                {
+                    var npc = (StaticNPC)comp;
+
+                    var factionID = 0;
+                    try
+                    {
+                        factionID = npc.Data.factionID;
+                    }
+                    catch
+                    {
+                        // ignored
                     }
 
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallAction>(hit, out comp))
+                    if (factionID > 0)
                     {
-                        var da = (DaggerfallAction)comp;
-                        if (da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct ||
-                            da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct6 ||
-                            da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger)
+                        if (GameManager.Instance.PlayerEntity.FactionData.GetFactionData(factionID, out var factionData))
                         {
-                            var multiTriggerOkay = false;
+                            // This must be an individual NPC or Daedra
+                            if (factionData.type == (int)FactionFile.FactionTypes.Individual ||
+                                factionData.type == (int)FactionFile.FactionTypes.Daedra)
+                            {
+                                result = TextManager.Instance.GetLocalizedFactionName(factionID, npc.DisplayName);
+                            }
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        result = npc.DisplayName;
+                    }
+
+                    prevDistance = PlayerActivate.StaticNPCActivationDistance;
+                }
+            }
+
+            // Checking for loot
+            // Corpses have a different activation distance than other containers/loot
+            if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.CorpseActivationDistance)
+            {
+                if (CheckComponent<DaggerfallLoot>(hit, out comp))
+                {
+                    var loot = (DaggerfallLoot)comp;
+
+                    if (loot.ContainerType == LootContainerTypes.CorpseMarker)
+                    {
+                        result = string.Format(Localize("DeadEnemy"), loot.entityName);
+                        prevDistance = PlayerActivate.CorpseActivationDistance;
+                    }
+                }
+            }
+
+            // DefaultActivationDistance == DoorActivationDistance == TreasureActivationDistance == PickpocketDistance
+            if (string.IsNullOrEmpty(result) && hit.distance <= PlayerActivate.DefaultActivationDistance)
+            {
+                // Checking for normal loot
+                if (CheckComponent<DaggerfallLoot>(hit, out comp))
+                {
+                    var loot = (DaggerfallLoot)comp;
+
+                    switch (loot.ContainerType)
+                    {
+                        case LootContainerTypes.DroppedLoot:
+                        case LootContainerTypes.RandomTreasure:
+                            if (loot.Items.Count == 1)
+                            {
+                                var item = loot.Items.GetItem(0);
+                                result = item.LongName;
+
+                                if (item.stackCount > 1)
+                                {
+                                    result = string.Format(Localize("StackCount"), result, item.stackCount);
+                                }
+                            }
+                            else
+                            {
+                                result = Localize("LootPile");
+                            }
+
+                            break;
+                        case LootContainerTypes.ShopShelves:
+                            result = Localize("ShopShelf");
+                            break;
+                        case LootContainerTypes.HouseContainers:
                             var mesh = hit.transform.GetComponent<MeshFilter>();
                             if (mesh)
                             {
@@ -601,161 +546,259 @@ namespace Game.Mods.WorldTooltips.Scripts
                                 {
                                     switch (record)
                                     {
-                                        case 1:
-                                            result = Localize("Wheel");
-                                            multiTriggerOkay = true;
+                                        case 41003:
+                                        case 41004:
+                                        case 41800:
+                                        case 41801:
+                                            result = Localize("Wardrobe");
                                             break;
-                                        case 61027:
-                                        case 61028:
-                                            result = Localize("Lever");
-                                            multiTriggerOkay = true;
+                                        case 41007:
+                                        case 41008:
+                                        case 41033:
+                                        case 41038:
+                                        case 41805:
+                                        case 41810:
+                                        case 41802:
+                                            result = Localize("Cabinets");
                                             break;
-                                        case 74143:
-                                            result = Localize("Mantella");
+                                        case 41027:
+                                            result = Localize("Shelf");
                                             break;
-                                        case 62323:
-                                        // Secret teleport
-                                        case 72019:
-                                        case 74215:
-                                        case 74225:
-                                            multiTriggerOkay = true;
+                                        case 41034:
+                                        case 41050:
+                                        case 41803:
+                                        case 41806:
+                                            result = Localize("Dresser");
+                                            break;
+                                        case 41032:
+                                        case 41035:
+                                        case 41037:
+                                        case 41051:
+                                        case 41807:
+                                        case 41804:
+                                        case 41808:
+                                        case 41809:
+                                        case 41814:
+                                            result = Localize("Cupboard");
+                                            break;
+                                        case 41815:
+                                        case 41816:
+                                        case 41817:
+                                        case 41818:
+                                        case 41819:
+                                        case 41820:
+                                        case 41821:
+                                        case 41822:
+                                        case 41823:
+                                        case 41824:
+                                        case 41825:
+                                        case 41826:
+                                        case 41827:
+                                        case 41828:
+                                        case 41829:
+                                        case 41830:
+                                        case 41831:
+                                        case 41832:
+                                        case 41833:
+                                        case 41834:
+                                            result = Localize("Crate");
+                                            break;
+                                        case 41811:
+                                        case 41812:
+                                        case 41813:
+                                            result = Localize("Chest");
+                                            break;
+                                        default:
+                                            result = Localize("Interact");
                                             break;
                                     }
                                 }
                             }
 
-                            if (da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger && !multiTriggerOkay)
-                            {
-                                result = null;
-                            }
-                            else
-                            {
-                                if (!HideInteractTooltip && string.IsNullOrEmpty(result))
-                                {
-                                    result = Localize("Interact");
-                                }
+                            break;
+                    }
 
-                                prevDistance = PlayerActivate.DefaultActivationDistance;
+                    prevDistance = PlayerActivate.TreasureActivationDistance;
+                }
+
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallAction>(hit, out comp))
+                {
+                    var da = (DaggerfallAction)comp;
+                    if (da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct ||
+                        da.TriggerFlag == DFBlock.RdbTriggerFlags.Direct6 ||
+                        da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger)
+                    {
+                        var multiTriggerOkay = false;
+                        var mesh = hit.transform.GetComponent<MeshFilter>();
+                        if (mesh)
+                        {
+                            int record;
+                            if (TryExtractNumber(mesh.name, out record))
+                            {
+                                switch (record)
+                                {
+                                    case 1:
+                                        result = Localize("Wheel");
+                                        multiTriggerOkay = true;
+                                        break;
+                                    case 61027:
+                                    case 61028:
+                                        result = Localize("Lever");
+                                        multiTriggerOkay = true;
+                                        break;
+                                    case 74143:
+                                        result = Localize("Mantella");
+                                        break;
+                                    case 62323:
+                                    // Secret teleport
+                                    case 72019:
+                                    case 74215:
+                                    case 74225:
+                                        multiTriggerOkay = true;
+                                        break;
+                                }
                             }
                         }
-                    }
 
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallLadder>(hit, out comp))
-                    {
-                        result = Localize("Ladder");
-                        prevDistance = PlayerActivate.DefaultActivationDistance;
-                    }
-
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBookshelf>(hit, out comp))
-                    {
-                        result = Localize("Bookshelf");
-                        prevDistance = PlayerActivate.DefaultActivationDistance;
-                    }
-
-                    if (string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
-                    {
-                        var qrb = (QuestResourceBehaviour)comp;
-
-                        if (qrb.TargetResource is Item)
+                        if (da.TriggerFlag == DFBlock.RdbTriggerFlags.MultiTrigger && !multiTriggerOkay)
                         {
-                            if (CheckComponent<DaggerfallBillboard>(hit, out comp))
+                            result = null;
+                        }
+                        else
+                        {
+                            if (!HideInteractTooltip && string.IsNullOrEmpty(result))
                             {
-                                var bb = (DaggerfallBillboard)comp;
-                                var archive = bb.Summary.Archive;
-                                var index = bb.Summary.Record;
-
-                                if (archive == 211)
-                                {
-                                    switch (index)
-                                    {
-                                        case 54:
-                                            result = Localize("TotemOfSeptim");
-                                            break;
-                                    }
-                                }
-                            }
-
-                            if (string.IsNullOrEmpty(result))
-                            {
-                                result = DaggerfallUnity.Instance.ItemHelper.ResolveItemLongName(((Item)qrb.TargetResource).DaggerfallUnityItem, false);
+                                result = Localize("Interact");
                             }
 
                             prevDistance = PlayerActivate.DefaultActivationDistance;
                         }
                     }
+                }
 
-                    if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallActionDoor>(hit, out comp))
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallLadder>(hit, out comp))
+                {
+                    result = Localize("Ladder");
+                    prevDistance = PlayerActivate.DefaultActivationDistance;
+                }
+
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallBookshelf>(hit, out comp))
+                {
+                    result = Localize("Bookshelf");
+                    prevDistance = PlayerActivate.DefaultActivationDistance;
+                }
+
+                if (string.IsNullOrEmpty(result) && CheckComponent<QuestResourceBehaviour>(hit, out comp))
+                {
+                    var qrb = (QuestResourceBehaviour)comp;
+
+                    if (qrb.TargetResource is Item)
                     {
-                        var door = (DaggerfallActionDoor)comp;
-
-                        if (TryExtractNumber(door.name, out int record) && !ShowHiddenDoorsTooltip)
+                        if (CheckComponent<DaggerfallBillboard>(hit, out comp))
                         {
-                            switch (record)
+                            var bb = (DaggerfallBillboard)comp;
+                            var archive = bb.Summary.Archive;
+                            var index = bb.Summary.Record;
+
+                            if (archive == 211)
                             {
-                                case 55006:
-                                case 55007:
-                                case 55008:
-                                case 55009:
-                                case 55010:
-                                case 55011:
-                                case 55012:
-                                case 55017:
-                                case 55018:
-                                case 55019:
-                                case 55020:
-                                case 55021:
-                                case 55022:
-                                case 55023:
-                                case 55024:
-                                case 55025:
-                                case 55026:
-                                case 55027:
-                                case 55028:
-                                case 55029:
-                                case 55030:
-                                case 55031:
-                                case 55032:
-                                case 72100:
-                                    result = "";
-                                    return result;
+                                switch (index)
+                                {
+                                    case 54:
+                                        result = Localize("TotemOfSeptim");
+                                        break;
+                                }
                             }
                         }
 
-                        result = Localize("Door");
-
-                        if (door.IsLocked && ShowLockStatus)
+                        if (string.IsNullOrEmpty(result))
                         {
-                            result = ShowLockLevel
-                                ? string.Format(Localize("LockLevel"), result, door.CurrentLockValue)
-                                : string.Format(Localize("LockLevelHidden"), result);
-
-                            if (ShowLockOpenChance)
-                            {
-                                var player = GameManager.Instance.PlayerEntity;
-                                var chance = FormulaHelper.CalculateInteriorLockpickingChance(player.Level, door.CurrentLockValue, player.Skills.GetLiveSkillValue(DFCareer.Skills.Lockpicking));
-
-                                result = string.Format(Localize("LockLevelUnlockChance"), result, chance);
-                            }
+                            result = DaggerfallUnity.Instance.ItemHelper.ResolveItemLongName(((Item)qrb.TargetResource).DaggerfallUnityItem, false);
                         }
 
-                        prevDistance = PlayerActivate.DoorActivationDistance;
+                        prevDistance = PlayerActivate.DefaultActivationDistance;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallActionDoor>(hit, out comp))
+                {
+                    var door = (DaggerfallActionDoor)comp;
+                    
+                    if (PenwickPeepIsOn && withinPeepRange && door.IsClosed)
+                    {
+                        if (ThePeeperIsHere())
+                        {
+                            return result;
+                        }
                     }
 
-                    // "else", look for static doors on this object. If there are any, return the specific location
-                    // Is computationally expensive and should be saved for last
-                    if (string.IsNullOrEmpty(result))
+                    if (TryExtractNumber(door.name, out var record) && !ShowHiddenDoorsTooltip)
                     {
-                        Transform doorOwner;
-                        DaggerfallStaticDoors doors = GetDoors(hit.transform, out doorOwner);
-                        if (doors)
+                        switch (record)
                         {
-                            result = GetStaticDoorText(doors, hit, doorOwner);
-                            prevDistance = PlayerActivate.DoorActivationDistance;
+                            case 55006:
+                            case 55007:
+                            case 55008:
+                            case 55009:
+                            case 55010:
+                            case 55011:
+                            case 55012:
+                            case 55017:
+                            case 55018:
+                            case 55019:
+                            case 55020:
+                            case 55021:
+                            case 55022:
+                            case 55023:
+                            case 55024:
+                            case 55025:
+                            case 55026:
+                            case 55027:
+                            case 55028:
+                            case 55029:
+                            case 55030:
+                            case 55031:
+                            case 55032:
+                            case 72100:
+                                result = "";
+                                return result;
                         }
-                        else
+                    }
+
+                    result = Localize("Door");
+
+                    if (door.IsLocked && ShowLockStatus)
+                    {
+                        result = ShowLockLevel
+                            ? string.Format(Localize("LockLevel"), result, door.CurrentLockValue)
+                            : string.Format(Localize("LockLevelHidden"), result);
+
+                        if (ShowLockOpenChance)
                         {
-                            prevHit = null;
+                            var player = GameManager.Instance.PlayerEntity;
+                            var chance = FormulaHelper.CalculateInteriorLockpickingChance(player.Level, door.CurrentLockValue, player.Skills.GetLiveSkillValue(DFCareer.Skills.Lockpicking));
+
+                            result = string.Format(Localize("LockLevelUnlockChance"), result, chance);
                         }
+                    }
+
+                    prevDistance = PlayerActivate.DoorActivationDistance;
+                }
+
+                // "else", look for static doors on this object. If there are any, return the specific location
+                // Is computationally expensive and should be saved for last
+                if (string.IsNullOrEmpty(result))
+                {
+                    Transform doorOwner;
+                    DaggerfallStaticDoors doors = GetDoors(hit.transform, out doorOwner);
+                    if (doors)
+                    {
+                        result = GetStaticDoorText(doors, hit, doorOwner);
+                        prevDistance = PlayerActivate.DoorActivationDistance;
+                    }
+                    else
+                    {
+                        prevHit = null;
                     }
                 }
             }
@@ -765,25 +808,28 @@ namespace Game.Mods.WorldTooltips.Scripts
             return result;
         }
 
-        string GetStaticDoorText(DaggerfallStaticDoors doors, RaycastHit hit, Transform doorOwner)
+        private string GetStaticDoorText(DaggerfallStaticDoors doors, RaycastHit hit, Transform _)
         {
             StaticDoor door;
 
-            //Debug.Log("GETSTATICDOORTEXT"+hashit);
             if (hit.distance <= PlayerActivate.DoorActivationDistance && (HasHit(doors, hit.point, out door) || CustomDoor.HasHit(hit, out door)))
             {
-                if (door.doorType == DoorTypes.Building && !playerEnterExit.IsPlayerInside)
+                switch (door.doorType)
                 {
-                    // Check for a static building hit
-                    StaticBuilding building;
-                    DFLocation.BuildingTypes buildingType;
-                    bool buildingLocked;
-                    int buildingLockValue;
-
-                    Transform buildingOwner;
-                    DaggerfallStaticBuildings buildings = GetBuildings(hit.transform, out buildingOwner);
-                    if (buildings && buildings.HasHit(hit.point, out building))
+                    case DoorTypes.Building when !playerEnterExit.IsPlayerInside:
                     {
+                        // Check for a static building hit
+                        StaticBuilding building;
+                        DFLocation.BuildingTypes buildingType;
+                        bool buildingLocked;
+                        int buildingLockValue;
+
+                        DaggerfallStaticBuildings buildings = GetBuildings(hit.transform);
+                        if (!buildings || !buildings.HasHit(hit.point, out building))
+                        {
+                            return prevDoorText;
+                        }
+
                         // Get building directory for location
                         BuildingDirectory buildingDirectory = GameManager.Instance.StreamingWorld.GetCurrentBuildingDirectory();
                         if (!buildingDirectory)
@@ -852,35 +898,27 @@ namespace Game.Mods.WorldTooltips.Scripts
                         prevDoorText = doorText;
 
                         return doorText;
+
+                        //If we caught ourselves hitting the same door again directly without touching the building, just return the previous text which should be the door's
                     }
-
-                    //If we caught ourselves hitting the same door again directly without touching the building, just return the previous text which should be the door's
-                    return prevDoorText;
-                }
-
-                if (door.doorType == DoorTypes.Building && playerEnterExit.IsPlayerInside)
-                {
-                    // Hit door while inside, transition outside
-                    return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
-                }
-
-                if (door.doorType == DoorTypes.DungeonEntrance && !playerEnterExit.IsPlayerInside)
-                {
-                    // Hit dungeon door while outside, transition inside
-                    return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
-                }
-
-                if (door.doorType == DoorTypes.DungeonExit && playerEnterExit.IsPlayerInside)
-                {
-                    // Hit dungeon exit while inside, ask if access wagon or transition outside
-                    if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity
-                        || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownHamlet
-                        || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownVillage)
-                    {
+                    case DoorTypes.Building when playerEnterExit.IsPlayerInside:
+                        // Hit door while inside, transition outside
                         return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
-                    }
+                    case DoorTypes.DungeonEntrance when !playerEnterExit.IsPlayerInside:
+                        // Hit dungeon door while outside, transition inside
+                        return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
+                    case DoorTypes.DungeonExit when playerEnterExit.IsPlayerInside:
+                    {
+                        // Hit dungeon exit while inside, ask if access wagon or transition outside
+                        if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity
+                            || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownHamlet
+                            || playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownVillage)
+                        {
+                            return string.Format(Localize("GoTo"), playerGPS.CurrentLocalizedLocationName);
+                        }
 
-                    return string.Format(Localize("GoToRegion"), playerGPS.CurrentLocalizedRegionName);
+                        return string.Format(Localize("GoToRegion"), playerGPS.CurrentLocalizedRegionName);
+                    }
                 }
             }
 
@@ -889,7 +927,7 @@ namespace Game.Mods.WorldTooltips.Scripts
             return null;
         }
 
-        class DoorData
+        private class DoorData
         {
             public Transform Parent;
             public Vector3 Position;
@@ -1031,7 +1069,7 @@ namespace Game.Mods.WorldTooltips.Scripts
             if (!found && goDoor)
             {
                 //Debug.Log("DESTROY");
-                GameObject.Destroy(goDoor);
+                Object.Destroy(goDoor);
                 goDoor = null;
                 goDoorCollider = null;
             }
@@ -1083,21 +1121,12 @@ namespace Game.Mods.WorldTooltips.Scripts
         }
 
         // Look for building array on object, then on direct parent
-        private DaggerfallStaticBuildings GetBuildings(Transform buildingsTransform, out Transform owner)
+        private DaggerfallStaticBuildings GetBuildings(Transform buildingsTransform)
         {
-            owner = null;
             DaggerfallStaticBuildings buildings = buildingsTransform.GetComponent<DaggerfallStaticBuildings>();
             if (!buildings)
             {
                 buildings = buildingsTransform.GetComponentInParent<DaggerfallStaticBuildings>();
-                if (buildings)
-                {
-                    owner = buildings.transform;
-                }
-            }
-            else
-            {
-                owner = buildings.transform;
             }
 
             return buildings;
@@ -1107,27 +1136,27 @@ namespace Game.Mods.WorldTooltips.Scripts
         {
             #region Fields
 
-            bool bordersSet;
-            Texture2D fillBordersTexture;
-            Texture2D topBorderTexture, bottomBorderTexture;
-            Texture2D leftBorderTexture, rightBorderTexture;
-            Texture2D topLeftBorderTexture, topRightBorderTexture;
-            Texture2D bottomLeftBorderTexture, bottomRightBorderTexture;
+            private bool bordersSet;
+            private Texture2D fillBordersTexture;
+            private Texture2D topBorderTexture, bottomBorderTexture;
+            private Texture2D leftBorderTexture, rightBorderTexture;
+            private Texture2D topLeftBorderTexture, topRightBorderTexture;
+            private Texture2D bottomLeftBorderTexture, bottomRightBorderTexture;
 
-            Rect lastDrawRect;
-            Rect fillBordersRect;
-            Rect topLeftBorderRect;
-            Rect topRightBorderRect;
-            Rect bottomLeftBorderRect;
-            Rect bottomRightBorderRect;
-            Rect topBorderRect;
-            Rect leftBorderRect;
-            Rect rightBorderRect;
-            Rect bottomBorderRect;
+            private Rect lastDrawRect;
+            private Rect fillBordersRect;
+            private Rect topLeftBorderRect;
+            private Rect topRightBorderRect;
+            private Rect bottomLeftBorderRect;
+            private Rect bottomRightBorderRect;
+            private Rect topBorderRect;
+            private Rect leftBorderRect;
+            private Rect rightBorderRect;
+            private Rect bottomBorderRect;
 
             public bool EnableBorder { get; set; }
-            Border<Vector2Int> virtualSizes;
-            
+            private Border<Vector2Int> virtualSizes;
+
             private const int _defaultMarginSize = 2;
             private const int _bottomMarginSize = 1;
 
@@ -1136,11 +1165,11 @@ namespace Game.Mods.WorldTooltips.Scripts
             private int currentRenderingHeight;
             private bool currentFullScreen;
 
-            bool drawToolTip;
-            string[] textRows;
-            float widestRow;
-            string lastText = string.Empty;
-            bool previousSDFState;
+            private bool drawToolTip;
+            private string[] textRows;
+            private float widestRow;
+            private string lastText = string.Empty;
+            private bool previousSDFState;
 
             #endregion
 
@@ -1399,7 +1428,7 @@ namespace Game.Mods.WorldTooltips.Scripts
 
             #region Private Methods
 
-            void UpdateTextRows(string text)
+            private void UpdateTextRows(string text)
             {
                 // Do nothing if text has not changed since last time
                 var sdfState = Font.IsSDFCapable;
@@ -1430,7 +1459,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 previousSDFState = sdfState;
             }
 
-            void DrawBorder()
+            private void DrawBorder()
             {
                 Rect drawRect = Rectangle;
                 if (drawRect != lastDrawRect)
@@ -1455,7 +1484,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 DaggerfallUI.DrawTextureWithTexCoords(bottomBorderRect, bottomBorderTexture, new Rect(0, 0, (bottomBorderRect.width / (LocalScale.y * 1.4f)) / virtualSizes.Bottom.x, 1));
             }
 
-            void UpdateBorderDrawRects(Rect drawRect)
+            private void UpdateBorderDrawRects(Rect drawRect)
             {
                 // Round input rectangle to pixel coordinates
                 drawRect.x = Mathf.Round(drawRect.x);
@@ -1523,7 +1552,7 @@ namespace Game.Mods.WorldTooltips.Scripts
 
         #endregion Private Methods
 
-        static void LoadTextures()
+        private static void LoadTextures()
         {
             if (!TextureReplacement.TryImportTexture(TooltipBgTopLeftName, true, out TooltipBgTopLeft))
             {
@@ -1570,14 +1599,14 @@ namespace Game.Mods.WorldTooltips.Scripts
             }
         }
 
-        bool TryExtractNumber(string str, out int number)
+        private bool TryExtractNumber(string str, out int number)
         {
             return int.TryParse(string.Join("", str.SkipWhile(c => !char.IsDigit(c)).TakeWhile(char.IsDigit)), out number);
         }
 
         #region Localization
 
-        static void LoadTextData()
+        private static void LoadTextData()
         {
             const string csvFilename = "WorldTooltipsModData.csv";
 
