@@ -23,6 +23,36 @@
                 "ShowLockStatus": "True",
                 "ShowLockLevel": "False",
                 "ShowLockOpenChance": "False"
+            },
+            "Positioning": {
+                "TooltipOffsetX": "0",
+                "TooltipOffsetY": "0"
+            }
+        },
+        "$version": "v1"
+    },
+    {
+        "Title": "Aspect 4:3",
+        "Author": "Jagget",
+        "Description": "For 4:3 aspect ratio in Retro Mode",
+        "SettingsVersion": "1.9",
+        "Values": {
+            "Positioning": {
+                "TooltipOffsetX": "-262",
+                "TooltipOffsetY": "0"
+            }
+        },
+        "$version": "v1"
+    },
+    {
+        "Title": "Aspect 16:10",
+        "Author": "Jagget",
+        "Description": "For 16:10 aspect ratio in Retro Mode",
+        "SettingsVersion": "1.9",
+        "Values": {
+            "Positioning": {
+                "TooltipOffsetX": "-185",
+                "TooltipOffsetY": "0"
             }
         },
         "$version": "v1"

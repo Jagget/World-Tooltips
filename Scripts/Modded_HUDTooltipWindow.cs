@@ -68,6 +68,10 @@ namespace Game.Mods.WorldTooltips.Scripts
         public static Color32 BgColor { get; private set; }
         public static Color32 TextColor { get; private set; }
 
+        // Tooltip positioning offsets relative to crosshair
+        public static int TooltipOffsetX { get; private set; } = 0;
+        public static int TooltipOffsetY { get; private set; } = 0;
+
         #endregion Settings
 
         #region Mod API
@@ -189,10 +193,32 @@ namespace Game.Mods.WorldTooltips.Scripts
             {
                 Debug.Log("***************Clearing door data cache..");
                 doorDataDict.Clear();
+                // Also cleanup door GameObject when changing map pixels
+                CleanupDoorGameObject();
             };
         }
 
         #endregion Constructors
+
+        #region Lifecycle Methods
+
+        /// <summary>
+        /// Cleanup when component is destroyed to prevent lingering GameObjects
+        /// </summary>
+        private void OnDestroy()
+        {
+            CleanupDoorGameObject();
+        }
+
+        /// <summary>
+        /// Cleanup when component is disabled to prevent interference
+        /// </summary>
+        private void OnDisable()
+        {
+            CleanupDoorGameObject();
+        }
+
+        #endregion Lifecycle Methods
 
         #region Public Methods
 
@@ -211,6 +237,10 @@ namespace Game.Mods.WorldTooltips.Scripts
             BgColor = modSettings.GetColor("Experimental", "BackgroundColor");
             TextColor = modSettings.GetColor("Experimental", "TextColor");
             FontScale = modSettings.GetFloat("Experimental", "FontScale");
+
+            // Tooltip positioning settings
+            TooltipOffsetX = modSettings.GetInt("Positioning", "TooltipOffsetX");
+            TooltipOffsetY = modSettings.GetInt("Positioning", "TooltipOffsetY");
         }
 
         public override void Draw()
@@ -225,16 +255,36 @@ namespace Game.Mods.WorldTooltips.Scripts
 
             if (OnlyInInfoMode && GameManager.Instance.PlayerActivate.CurrentMode != PlayerActivateModes.Info)
             {
+                // Clean up door GameObject when not in info mode to prevent interference
+                CleanupDoorGameObject();
                 return;
             }
 
-            // Weird bug occurs when the player is clicking on a static door from a distance because the activation creates another "goDoor"
-            // which overlaps and prevents the player from going in. So we must delete the tooltip's goDoor beforehand if the player is activating
+            // Only cleanup and hide tooltips on actual activation completion
+            // This prevents the tooltip's collision detection from interfering with door opening
+            // but allows tooltips to remain visible during mouse down
             if (InputManager.Instance.ActionComplete(InputManager.Actions.ActivateCenterObject))
             {
-                Object.Destroy(goDoor);
-                goDoor = null;
-                goDoorCollider = null;
+                CleanupDoorGameObject();
+                return; // Don't show tooltips after successful activation
+            }
+
+            // Cleanup when activation starts to prevent interference, but allow tooltip to continue showing
+            if (InputManager.Instance.ActionStarted(InputManager.Actions.ActivateCenterObject))
+            {
+                CleanupDoorGameObject();
+            }
+
+            // Also cleanup if player is moving quickly or changing direction rapidly
+            // This helps prevent stale door GameObjects from persisting
+            // Use input detection as a proxy for movement since PlayerMotor properties may vary
+            if (InputManager.Instance.HasAction(InputManager.Actions.MoveForwards) ||
+                InputManager.Instance.HasAction(InputManager.Actions.MoveBackwards) ||
+                InputManager.Instance.HasAction(InputManager.Actions.MoveLeft) ||
+                InputManager.Instance.HasAction(InputManager.Actions.MoveRight) ||
+                InputManager.Instance.HasAction(InputManager.Actions.Run))
+            {
+                CleanupDoorGameObject();
             }
 
             tooltip.Scale = new Vector2(DaggerfallUI.Instance.DaggerfallHUD.NativePanel.LocalScale.x * FontScale, DaggerfallUI.Instance.DaggerfallHUD.NativePanel.LocalScale.y * FontScale);
@@ -245,10 +295,26 @@ namespace Game.Mods.WorldTooltips.Scripts
 
             if (string.IsNullOrEmpty(text))
             {
+                // Clean up when no tooltip is being shown
+                CleanupDoorGameObject();
                 return;
             }
 
             tooltip.Draw(text);
+        }
+
+        /// <summary>
+        /// Safely cleanup the door GameObject and collider to prevent interference with door opening
+        /// </summary>
+        private void CleanupDoorGameObject()
+        {
+            if (goDoor != null)
+            {
+                Object.Destroy(goDoor);
+                goDoor = null;
+                goDoorCollider = null;
+                prevHit = null; // Reset hit tracking to force fresh detection
+            }
         }
 
         #endregion Public Methods
@@ -344,7 +410,7 @@ namespace Game.Mods.WorldTooltips.Scripts
             {
                 return false;
             }
-            
+
             //Determine XZ distance from player to object
             Vector3 path = hit.point - GameManager.Instance.PlayerController.transform.position;
             var distanceXZ = Vector3.ProjectOnPlane(path, Vector3.up).magnitude;
@@ -363,6 +429,16 @@ namespace Game.Mods.WorldTooltips.Scripts
             // Did we hit something?
             if (!Physics.Raycast(ray, out var hit, rayDistance, playerLayerMask))
             {
+                // Clean up when no hit is detected to prevent stale GameObjects
+                CleanupDoorGameObject();
+                return null;
+            }
+
+            // Skip processing if we hit our own temporary door GameObject
+            // This prevents recursive issues and ensures clean operation
+            if (goDoor != null && hit.transform == goDoor.transform)
+            {
+                CleanupDoorGameObject();
                 return null;
             }
 
@@ -723,7 +799,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 if (string.IsNullOrEmpty(result) && CheckComponent<DaggerfallActionDoor>(hit, out comp))
                 {
                     var door = (DaggerfallActionDoor)comp;
-                    
+
                     if (PenwickPeepIsOn && withinPeepRange && door.IsClosed)
                     {
                         if (ThePeeperIsHere())
@@ -812,7 +888,8 @@ namespace Game.Mods.WorldTooltips.Scripts
         {
             StaticDoor door;
 
-            if (hit.distance <= PlayerActivate.DoorActivationDistance && (HasHit(doors, hit.point, out door) || CustomDoor.HasHit(hit, out door)))
+            // Removed undefined CustomDoor.HasHit reference that could cause compilation errors
+            if (hit.distance <= PlayerActivate.DoorActivationDistance && HasHit(doors, hit.point, out door))
             {
                 switch (door.doorType)
                 {
@@ -968,6 +1045,7 @@ namespace Game.Mods.WorldTooltips.Scripts
 
         /// <summary>
         /// Check for a door hit in world space.
+        /// Enhanced to minimize interference with door opening functionality.
         /// </summary>
         /// <param name="dfuStaticDoors">dfuStaticDoors</param>
         /// <param name="point">Hit point from ray test in world space.</param>
@@ -985,21 +1063,30 @@ namespace Game.Mods.WorldTooltips.Scripts
 
             var doors = dfuStaticDoors.Doors;
 
+            // Create GameObject with complete isolation from door interaction
             // Using a single hidden trigger created when testing door positions
-            // This avoids problems with AABBs as trigger rotates nicely with model transform
-            // A trigger is also more useful for debugging as its drawn by editor
             if (goDoor == null)
             {
-                goDoor = new GameObject();
+                goDoor = new GameObject("WorldTooltips_TempDoorDetector");
                 goDoor.hideFlags = HideFlags.HideAndDontSave;
-                goDoor.transform.parent = dfuStaticDoors.transform;
+
+                // Don't parent to dfuStaticDoors to avoid click interference
+                // Instead, position it manually and destroy immediately after use
                 goDoorCollider = goDoor.AddComponent<BoxCollider>();
                 goDoorCollider.isTrigger = true;
+
+                // Multiple layers of isolation
+                goDoor.layer = LayerMask.NameToLayer("Ignore Raycast");
+                goDoor.tag = "Untagged"; // Ensure it doesn't match any interaction tags
+
+                // Disable all possible interaction components
+                goDoor.SetActive(false); // Start inactive, only activate during bounds check
             }
 
             BoxCollider c = goDoorCollider;
             var found = false;
 
+            // Check if we can reuse previous detection (but still clean up properly)
             if (goDoor && prevHit == goDoor.transform && c.bounds.Contains(point))
             {
                 //Debug.Log("EARLY FOUND");
@@ -1008,7 +1095,6 @@ namespace Game.Mods.WorldTooltips.Scripts
             }
 
             // Test each door in array
-
             for (var i = 0; !found && i < doors.Length; i++)
             {
                 var hash = 23;
@@ -1031,19 +1117,26 @@ namespace Game.Mods.WorldTooltips.Scripts
 
                 //Debug.Log("DOORS ITERATE"+i+", hash:" + hash);
 
-                // Setup single trigger position and size over each door in turn
-                // This method plays nice with transforms
+                // Setup trigger without parenting to avoid click interference
+                // Position manually in world space instead of using parent hierarchy
                 c.size = doors[i].size;
-                goDoor.transform.parent = doorData.Parent;
+
+                // Don't parent - set world position directly to avoid hierarchy interference
                 goDoor.transform.position = doorData.Position;
                 goDoor.transform.rotation = doorData.Rotation;
 
-                // Has to be after setting the parent, position, and rotation of the goDoor
+                // Temporarily activate only for bounds calculation, then deactivate immediately
+                goDoor.SetActive(true);
+
+                // Has to be after setting position and rotation
                 if (created)
                 {
                     var bounds = c.bounds;
                     doorData.SetMinMax(bounds.min, bounds.max);
                 }
+
+                // Immediately deactivate to prevent any interaction
+                goDoor.SetActive(false);
 
                 // Check if hit was inside trigger
                 // Much more performant
@@ -1065,18 +1158,24 @@ namespace Game.Mods.WorldTooltips.Scripts
                 }
             }
 
-            // Remove temp trigger
-            if (!found && goDoor)
+            // Cleanup strategy: Destroy if no door found, but allow brief persistence if found
+            // This allows smoother tooltip display while still preventing click interference
+            if (!found && goDoor != null)
             {
-                //Debug.Log("DESTROY");
                 Object.Destroy(goDoor);
                 goDoor = null;
                 goDoorCollider = null;
+                prevHit = null;
             }
-            else if (found)
+            else if (found && goDoor != null)
             {
+                // Allow brief persistence for smooth tooltip, but ensure it's isolated
                 prevHit = goDoor.transform;
                 prevDoor = doorOut;
+
+                // Schedule cleanup for a very short time to prevent click interference
+                // The Update method will handle more aggressive cleanup when needed
+                Object.Destroy(goDoor, 0.05f);
             }
 
             return found;
@@ -1304,6 +1403,31 @@ namespace Game.Mods.WorldTooltips.Scripts
             }
 
             /// <summary>
+            /// Get screen center coordinates that work properly with RetroRenderer and large HUD
+            /// </summary>
+            private Vector2 GetScreenCenter()
+            {
+                // Always use actual screen coordinates - let RetroRenderer handle the transformation
+                // The tooltip is part of the HUD system, so RetroRenderer will scale it appropriately
+
+                float centerX = Screen.width * 0.5f;
+                float centerY = Screen.height * 0.5f;
+
+                // Adjust for large HUD if docked - the crosshair is in the center of the remaining viewport
+                if (DaggerfallUI.Instance.DaggerfallHUD != null &&
+                    DaggerfallUnity.Settings.LargeHUD &&
+                    DaggerfallUnity.Settings.LargeHUDDocked)
+                {
+                    HUDLarge largeHUD = DaggerfallUI.Instance.DaggerfallHUD.LargeHUD;
+                    // The game viewport is reduced by the HUD height, so crosshair moves up
+                    float availableHeight = Screen.height - largeHUD.Rectangle.height;
+                    centerY = availableHeight * 0.5f; // Center of the remaining viewport area
+                }
+
+                return new Vector2(centerX, centerY);
+            }
+
+            /// <summary>
             /// Flags tooltip to be drawn at end of UI update.
             /// </summary>
             /// <param name="text">Text to render inside tooltip.</param>
@@ -1345,22 +1469,35 @@ namespace Game.Mods.WorldTooltips.Scripts
                     widestRow + LeftMargin + RightMargin,
                     Font.GlyphHeight * textRows.Length + TopMargin + BottomMargin - 1);
 
-                // Adjust tooltip position when large HUD is docked to match new viewport size
+                // Position tooltip relative to crosshair - let RetroRenderer handle scaling
+                Vector2 screenCenter = GetScreenCenter();
+
+                // Position tooltip relative to crosshair (screen center) with offset to avoid covering the target
+                Vector2 tooltipPosition = new Vector2(
+                    screenCenter.x + TooltipOffsetX,
+                    screenCenter.y + TooltipOffsetY
+                );
+
+                // Ensure tooltip stays within screen bounds (accounting for large HUD)
+                float maxY = Screen.height;
                 if (DaggerfallUI.Instance.DaggerfallHUD != null &&
                     DaggerfallUnity.Settings.LargeHUD &&
                     DaggerfallUnity.Settings.LargeHUDDocked)
                 {
                     HUDLarge largeHUD = DaggerfallUI.Instance.DaggerfallHUD.LargeHUD;
-                    // Set tooltip position
-                    // Don't know why I need to subtract by 2 pixels
-                    Position = new Vector2(Screen.width / 2f, (Screen.height - largeHUD.Rectangle.height) / 2f - 2);
+                    maxY = Screen.height - largeHUD.Rectangle.height; // Don't overlap with HUD
                 }
-                else
-                {
-                    // Set tooltip position without large HUD
-                    // Don't know why I need to add one pixel
-                    Position = new Vector2(Screen.width / 2f, Screen.height / 2f + 1);
-                }
+
+                if (tooltipPosition.x + Size.x > Screen.width)
+                    tooltipPosition.x = screenCenter.x - Size.x - Math.Abs(TooltipOffsetX); // Move to left of crosshair
+
+                if (tooltipPosition.y < 0)
+                    tooltipPosition.y = 10; // Move to top of screen
+
+                if (tooltipPosition.y + Size.y > maxY)
+                    tooltipPosition.y = maxY - Size.y - 10; // Move up from bottom (or HUD)
+
+                Position = tooltipPosition;
 
                 // Check if mouse position is in parent's rectangle (to prevent tooltips out of panel's rectangle to be displayed)
                 if (Parent != null)
@@ -1381,7 +1518,7 @@ namespace Game.Mods.WorldTooltips.Scripts
                 {
                     base.Draw();
 
-                    // Set render area for tooltip to whole screen (material might have been changed by other component, i.e. _ScissorRect might have been set to a subarea of screen (e.g. by TextLabel class))
+                    // Set render area for tooltip to whole screen - RetroRenderer handles the rest
                     Material material = Font.GetMaterial();
                     Vector4 scissorRect = new Vector4(0, 1, 0, 1);
                     material.SetVector(_scissorRect, scissorRect);
@@ -1391,8 +1528,6 @@ namespace Game.Mods.WorldTooltips.Scripts
                     Vector2 textPos = new Vector2(
                         rect.x + LeftMargin * Scale.x,
                         rect.y + TopMargin * Scale.y);
-
-                    //if (rect.xMax > Screen.width) textPos.x -= (rect.xMax - Screen.width);
 
                     // Draw border
                     if (EnableBorder && bordersSet)

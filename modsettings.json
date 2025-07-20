@@ -67,6 +67,32 @@
             "$version": "v1"
         },
         {
+            "Name": "Positioning",
+            "Description": "Tooltip Positioning",
+            "IsAdvanced": false,
+            "Keys": [
+                {
+                    "Min": -500,
+                    "Max": 200,
+                    "Value": 0,
+                    "Name": "TooltipOffsetX",
+                    "Description": "Horizontal offset from crosshair (positive = right, negative = left)",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                },
+                {
+                    "Min": -200,
+                    "Max": 200,
+                    "Value": 0,
+                    "Name": "TooltipOffsetY",
+                    "Description": "Vertical offset from crosshair (positive = down, negative = up)",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                }
+            ],
+            "$version": "v1"
+        },
+        {
             "Name": "Experimental",
             "Description": "Use carefully!",
             "IsAdvanced": true,
